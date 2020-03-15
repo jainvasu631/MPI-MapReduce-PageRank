@@ -8,3 +8,6 @@ Report/Report.*
 *.out 
 *.txt
 !Tests/*.txt
+
+#Exclude .vscode
+.vscode/*
