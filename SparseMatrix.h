@@ -23,11 +23,19 @@ class SparseMatrix{
             Element(Size row,Size col, Value val): value(val),Row(row),Col(col) {}
         
             // Compare two Elements
-            static inline bool operator<(const Element& e1, const Element& e2) {return (e1.Row==e2.Row)? e1.Col<e2.Col : e1.Row<e1.Row;}
+            inline bool operator<(const Element& other) {return (Row==other.Row)? Col<other.Col : Row<other.Row;}
+            inline bool operator<(const Element& other) const {return (Row==other.Row)? Col<other.Col : Row<other.Row;}
+            inline bool operator<(Element& other) {return (Row==other.Row)? Col<other.Col : Row<other.Row;}
+            inline bool operator<(Element& other) const {return (Row==other.Row)? Col<other.Col : Row<other.Row;}
             
             // Check if two Elements are equal
-            static inline bool operator==(const Element& e1, const Element& e2) {return abs(e1.value-e2.value)<TOL;}
-
+            inline bool operator==(const Element& other) {return abs(value-other.value)<TOL;}
+            inline bool operator==(const Element& other) const {return abs(value-other.value)<TOL;}
+            inline bool operator==(Element& other) const {return abs(value-other.value)<TOL;}
+            inline bool operator==(Element& other) {return abs(value-other.value)<TOL;}
+            
+            static inline bool comp(const Element& e1, const Element& e2) {return (e1.Row==e2.Row)? e1.Col<e2.Col : e1.Row<e2.Row;}
+            
         friend class SparseMatrix;
     };
     using Data = vector<Element>;
@@ -53,13 +61,13 @@ class SparseMatrix{
         inline const Value& operator()(Size row, Size col) const {return (*lower_bound(data.begin(),data.end(),Element(row,col,0))).value;}
 
         // Return address of first element
-        inline Element* data(Size row=0) {return data.data();}
+        // inline Element* data(Size row=0) {return data.data();}
 
         // Check if two matrices are Compatible (i.e Have Same Indexes)
-        static inline bool isComparable(const SparseMatrix& c,const SparseMatrix& c_) {return (c.NumElements()==c_.NumElements()) && equal(c.data.begin(),c.data.end(),c_.data.begin(),Element::operator<);}
+        inline bool isComparable(const SparseMatrix& other) {return (NumElements()==other.NumElements()) && equal(data.begin(),data.end(),other.data.begin(),Element::comp);}
 
         // Check if two matrices are equal or not
-        static inline bool operator==(const SparseMatrix& c,const SparseMatrix& c_) {return isComparable(c,c_)? c.data==c_.data: false;}
+        inline bool operator==(const SparseMatrix& other) {return isComparable(other)? data==other.data: false;}
 
         //Function to print the Matrix
         void print(string preface="Printing Sparse Matrix as (Row,Col,Value) : ", bool TRANSPOSE=false){	

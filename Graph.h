@@ -79,5 +79,5 @@ class Graph{
             }
         }
     
-    friend SparseMatrix createHyperlinkMatrix(Graph& graph);             
+    friend class Global;             
 };
