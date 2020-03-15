@@ -1,0 +1,10 @@
+# Exclude All Files in Report Except the .tex and .pdf file
+Report/Report.*
+!Report/Report.tex
+!Report/Report.pdf
+
+#Exclude All Object and Output Files
+*.o 
+*.out 
+*.txt
+!Tests/*.txt
