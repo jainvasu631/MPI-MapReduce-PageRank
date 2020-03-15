@@ -77,5 +77,7 @@ class Graph{
                     cout<< vertex << "->";
                 cout <<"|"<< endl;
             }
-        }             
+        }
+    
+    friend SparseMatrix createHyperlinkMatrix(Graph& graph);             
 };

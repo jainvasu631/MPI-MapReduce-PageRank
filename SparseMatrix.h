@@ -30,7 +30,6 @@ class SparseMatrix{
 
         friend class SparseMatrix;
     };
-    using Element = tuple<Size,Size,Value>;
     using Data = vector<Element>;
     private:
         Data data;

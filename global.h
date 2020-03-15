@@ -20,5 +20,11 @@ inline void assignConstants();
 SparseMatrix createHyperlinkMatrix(Graph& graph){
     const Size N = graph.numVertices();
     SparseMatrix result;
+    for(Graph::Vertex from=0; from<N; from++){
+        const Graph::VertexList& toList = graph.adjacencyList[from];
+        double importance = 1.0/toList.size();
+        for(const Graph::Vertex& to : toList)
+            result.addElement(from,to,importance);
+    }
     return result;
 };
