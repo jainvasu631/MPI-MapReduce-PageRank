@@ -1,3 +1,5 @@
+#pragma once
+
 #include<algorithm> 
 #include<cmath>
 #include<fstream>
@@ -10,6 +12,7 @@ using namespace std;
 
 class Graph{
     // Type Aliases
+    using Size = unsigned int;
     using Vertex = int;
     using Edge = pair<Vertex,Vertex>;
     using EdgeList = vector<Edge>;
@@ -54,12 +57,12 @@ class Graph{
         }
 
         // Find the number of Vertices
-        unsigned long inline numVertices() {return Vertices.size();}
+        Size inline numVertices() {return Vertices.size();}
         // Find the number of Edges
-        unsigned long inline numEdges() {return Edges.size();}
+        Size inline numEdges() {return Edges.size();}
 
         // Find number of Edges Away From a Graph
-        unsigned long inline numEdgesFromVertex(Vertex vertex) {return adjacencyList[vertex].size();}
+        Size inline numEdgesFromVertex(Vertex vertex) {return adjacencyList[vertex].size();}
 
         // Find if Graph contains Vertex.
         bool inline isVertexInGraph(Vertex vertex) {return vertex < numVertices();}
