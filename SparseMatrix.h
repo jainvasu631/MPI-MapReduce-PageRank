@@ -62,11 +62,11 @@ class SparseMatrix{
         static inline bool operator==(const SparseMatrix& c,const SparseMatrix& c_) {return isComparable(c,c_)? c.data==c_.data: false;}
 
         //Function to print the Matrix
-        static void print(const SparseMatrix& a, string preface="Printing Sparse Matrix as (Row,Col,Value) : ", bool TRANSPOSE=false){	
-            Size elements = a.NumElements();
+        void print(string preface="Printing Sparse Matrix as (Row,Col,Value) : ", bool TRANSPOSE=false){	
+            Size elements = NumElements();
             cout << preface <<std::fixed<< endl;
             cout.precision(5);
-            for(const Element& e : a.data)
+            for(const Element& e : data)
                 cout << "(" << e.Row << ',' << e.Col << ',' << e.value << ')' << endl;     
         }
 
