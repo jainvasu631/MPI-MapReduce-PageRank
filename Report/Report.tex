@@ -1,0 +1,334 @@
+\documentclass{article}
+
+\usepackage{lastpage}
+\usepackage{fancyhdr} % Required for custom headers
+\usepackage{extramarks} % Required for headers and footers
+\usepackage[usenames,dvipsnames]{color} % Required for custom colors
+\usepackage{graphicx} % Required to insert images
+\usepackage{subcaption}
+\usepackage{listings} % Required for insertion of code
+\usepackage{color}
+\usepackage{rotating}
+\usepackage{courier} % Required for the courier font
+% Below are optional packages
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{float}
+\usepackage{pdfpages}
+\usepackage{multirow}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{hyperref}
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\linespread{1.1} % Line spacing
+
+% Set up the header and footer
+\pagestyle{fancy}
+\lhead{\hmwkAuthorNameOne , \hmwkAuthorNameTwo} % Top left header
+\chead{\hmwkTitle} % Top center head
+\rhead{\hmwkClass} % Top right header
+\lfoot{\lastxmark} % Bottom left footer
+\cfoot{} % Bottom center footer
+\rfoot{Page\ \thepage\ of\ \protect\pageref{LastPage}} % Bottom right footer
+\renewcommand\headrulewidth{0.4pt} % Size of the header rule
+\renewcommand\footrulewidth{0.4pt} % Size of the footer rule
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+% Define Colors for Code Snippets in Java
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=C++,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=4
+}
+
+\newcommand{\cpp}{\lstinline[language=C++]}
+%------------------------------------------------------------------------------------
+%   DOCUMENT STRUCTURE COMMANDS
+%   Skip this unless you know what you're doing
+%------------------------------------------------------------------------------------
+
+% Header and footer for when a page split occurs within a problem environment
+\newcommand{\enterProblemHeader}[1]{
+    %\nobreak\extramarks{#1}{#1 continued on next page\ldots}\nobreak
+    %\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+}
+
+% Header and footer for when a page split occurs between problem environments
+\newcommand{\exitProblemHeader}[1]{
+    %\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+    %\nobreak\extramarks{#1}{}\nobreak
+}
+
+\setcounter{secnumdepth}{0} % Removes default section numbers
+\newcounter{homeworkProblemCounter} % Creates a counter to keep track of the number of problems
+\setcounter{homeworkProblemCounter}{0}
+
+\newcommand{\homeworkProblemName}{}
+\newenvironment{homeworkProblem}[1][Part \arabic{homeworkProblemCounter}]{ % Makes a new environment called homeworkProblem which takes 1 argument (custom name) but the default is "Problem #"
+    \stepcounter{homeworkProblemCounter} % Increase counter for number of problems
+    \renewcommand{\homeworkProblemName}{#1} % Assign \homeworkProblemName the name of the problem
+    \section{\homeworkProblemName} % Make a section in the document with the custom problem count
+    \enterProblemHeader{\homeworkProblemName} % Header and footer within the environment
+}{
+    \exitProblemHeader{\homeworkProblemName} % Header and footer after the environment
+}
+
+\newcommand{\problemAnswer}[1]{ % Defines the problem answer command with the content as the only argument
+    \noindent\framebox[\columnwidth][c]{\begin{minipage}{0.98\columnwidth}#1\end{minipage}} % Makes the box around the problem answer and puts the content inside
+}
+
+\newcommand{\homeworkSectionName}{}
+\newenvironment{homeworkSection}[1]{ % New environment for sections within homework problems, takes 1 argument - the name of the section
+    \renewcommand{\homeworkSectionName}{#1} % Assign \homeworkSectionName to the name of the section from the environment argument
+    \subsection{\homeworkSectionName} % Make a subsection with the custom name of the subsection
+    \enterProblemHeader{\homeworkProblemName\ [\homeworkSectionName]} % Header and footer within the environment
+}{
+    \enterProblemHeader{\homeworkProblemName} % Header and footer after the environment
+}
+
+
+%=================================================================
+
+%------------------------------------------------------------------------------------
+%   NAME AND CLASS SECTION
+%------------------------------------------------------------------------------------
+
+\newcommand{\hmwkTitle}{MapReduce Implementation of Google's PageRank Algorithm} % Assignment title
+\newcommand{\hmwkSubtitle}{using MPI} % Assignment Subtitle
+\newcommand{\hmwkClass}{COL380} % Course/class
+\newcommand{\hmwkClassTitle}{Introduction to Parallel and Distributed Computing} % Course/class title
+\newcommand{\hmwkAuthorNameOne}{Vasu Jain} % Your name
+\newcommand{\hmwkAuthorNameTwo}{Shreya Sharma} % Your name
+\newcommand{\hmwkEntryNumberOne}{2017CS10387} % Your entry number
+\newcommand{\hmwkEntryNumberTwo}{2017CS50493} % Your entry number
+
+
+%------------------------------------------------------------------------------------
+%   TITLE PAGE
+%------------------------------------------------------------------------------------
+
+\title{
+    \textmd{\hmwkClass :\ \hmwkClassTitle}\\
+    \vspace{2in}
+    \textmd{\textbf{\hmwkTitle}}\\
+    \textmd{\hmwkSubtitle}\\
+    % \normalsize\vspace{0.1in}\small{Due\ on\ \hmwkDueDate}\\
+    \vspace{3in}
+}
+        
+\author
+{
+    \textbf{\hmwkAuthorNameOne:\ \hmwkEntryNumberOne}
+    \ ,
+    \textbf{\hmwkAuthorNameTwo:\ \hmwkEntryNumberTwo}
+}
+
+% Insert date here if you want it to appear below your name
+\date{\today} 
+
+%------------------------------------------------------------------------------------
+
+\begin{document}
+    
+    \maketitle
+    \clearpage
+    \tableofcontents
+    \clearpage
+    
+    %=========================================================
+    %   Data Structure and Algorithm Optimization: 
+    %=========================================================
+    \section{Design Philosophy, Objectives and Workflow}
+    
+    We approached this assignment with the following objectives and design philosophy:
+    % \begin{enumerate}
+    % \end{enumerate}
+    The time measurements were done by using the \cpp{std::chrono::high_resolution_clock} 
+    % and code was compiled with -O3 Optimization flag.
+    These objectives were achieved to a large extent by continuous evolution of the code-base.
+    The design philosophy caused changes across the objectives in tandem. However, the general design cycle was \\
+    
+    Optimize Serial $\longrightarrow$ Parallelize algorithm $\longrightarrow$ Refactor Code $\longrightarrow$ Optimize Serial $\longrightarrow$ ... \\
+    
+    Our code and scripts can be found in the repository at    \url{https://github.com/jainvasu631/MPI-MapReduce-PageRank}
+    \clearpage
+    
+    %=========================================================
+    %   Data Structure and Algorithm Optimization: 
+    %=========================================================
+    \section{Data Structures and Serial Optimization }
+    \subsection{Data Structure}
+    % Both Matrices A and B are stored in the form of \cpp{FlatMatrix} which is a Matrix Wrapper \cpp{class} on \cpp{std::vector<double>}. The \cpp{FlatMatrix} class allows indexation similar to \cpp{std::vector<std::vector<double>>} i.e \cpp{a(i,j)} instead of \cpp{a[i][j]}. The FlatMatrix gives us advantage of STL while also guaranteeing that all elements of the matrix our consecutively placed in memory. This is a necessity as \cpp{MPI_Scatter} and \cpp{MPI_Gather} operations require consecutive memory layout. \\
+    % Matrix A is stored in Row Major order while Matrix B is stored in Column Major Order. Since Matrix A and Matrix B are accessed Row wise and Column wise during Matrix Multiplication, this provides additional locality and hence is an Optimization. Hence During Matrix Multiplication we do \cpp{a[i][k]*b[j][k]} instead of \cpp{a[i][k]*b[k][j]}. \\
+    
+    \subsection{Initialization}
+    % Both Matrices A and B can be independently initialised. However as both matrices have no data dependency between them. They are initialized together in a for loop to save overhead time.
+    
+    \subsubsection{Time Complexity Analysis}
+    % The 2 parts have serial time complexity:
+    % \begin{enumerate}
+    %     \item Initialization - $O(N^2)$ (Quadratic due to Initialization of A and B by random numbers)
+    %     \item Matrix Multiplication - $O(N^2)$ (Quadratic due to the 2 nested for loops of Size N in matrix multiplication side the main loop. The third innermost loop is of constant size as M=32)
+    %     \item Checking Correctness - $O(N^2)$ ( Quadratic due to iterating over all elements of two $N\times N$ \cpp{FlatMatrix})
+    % \end{enumerate}
+    
+    \clearpage
+    %=========================================================
+    %   Parallelization of Algorithm: 
+    %=========================================================
+    \section{MPI - Message Parsing Interface}
+    Message Passing Interface (MPI) is a communication protocol for parallel programming. MPI is specifically used to allow applications to run in parallel across a number of separate computers connected by a network.
+    Message passing programs generally run the same code on multiple processors, which then communicate with one another via library calls which fall into a few general categories:
+        \begin{itemize}
+            \item Calls to initialize, manage, and terminate communications
+            \item Calls to communicate between two individual processes (point-to-point)
+            \item Calls to communicate among a group of processes (collective)
+        \end{itemize}
+    \subsection{Types of Communications}
+    \subsubsection{Point-to-point Communication}
+        \begin{itemize}
+            \item {Blocking P2P Communication} - A blocking call suspends execution of the process until the message buffer being sent/received is safe to use \cpp{(MPI_Send, MPI_Recv)}
+            \item {Non-blocking P2P Communication} - A non-blocking call just initiates communication \cpp{(MPI_Isend, MPI_Irecv)}; the status of data transfer and the success of the communication must be verified later by the programmer (\cpp{MPI_Wait} or \cpp{MPI_Test}).  
+        \end{itemize}
+    \subsubsection{Collective Communication}
+    Collective calls involve ALL processes within a communicator. There are 3 basic types of collective communications - 
+        \begin{itemize}
+            \item Synchronization \cpp{(MPI_Barrier)}
+            \item Data movement \cpp{(MPI_Bcast/Scatter/Gather/Allgather/Alltoall)} 
+            \item Collective computation (\cpp{MPI_Reduce/Allreduce/Scan}) 
+        \end{itemize}
+    
+    \clearpage
+    
+    %=========================================================
+    %   Parallelization of Algorithm: 
+    %=========================================================
+    \section{Parallelization of Algorithm}
+    % Division of work among threads by MPI is done by assigning roughly equal number of rows of \cpp{FlatMatrix} to a thread. Also consecutive chunks of rows are usually assigned to same thread i.e. large chunk size of rows is given to each thread. This means if consecutive rows are close to each other in memory. they are being worked by the same thread avoiding false conflict misses. This also aids in cache locality for a particular process.
+    
+    \subsection{Embarrassingly Parallel For Loop}
+    
+    \subsubsection{Matrix Multiplication}
+    % We have parallelized the standard matrix multiplication algorithm where the Matrix B is $32 \times N$ is passed completely to all processes in the form of \cpp{FlatMatrix}. Matrix A is $32 \times N$ is passed as evenly distributed chunks i.e as SIZE-number of sub-matrices of dimensions $N/SIZE \times 32$ and sent to threads in the order of their RANK. The thread with RANK=0 is the root thread. So each thread calculates (N/SIZE) rows of the final output matrix 'C' of the overall multiplication. Since there is no data dependence in the calculation of the 'C' matrix within its own elements, they can be independently calculated by different processes and then combined together into a single \cpp{FlatMatrix} by one thread.
+     
+    %=========================================================
+    %   Checking Correctness 
+    %=========================================================
+    
+     \section{Checking Correctness}
+        % Correctness of the output of parallelised matrix multiplication is verified by calculating the absolute difference of corresponding elememts in the resultant matrices and ensuring they are each smaller than \cpp{Tolerance=1.0e-8}.\\
+        % If difference is bigger than tolerance for any element then we return "false"(Matrices are unequal) else we return "true" (Matrices are equal).
+    
+    \clearpage
+    
+    %=========================================================
+    %   Differences among different versions: 
+    %=========================================================
+    \section{Differences among the 3 Versions of Parallel Algorithm}
+    
+    \subsection{In terms of Principle}
+    \clearpage
+    
+    \subsection{In terms of Implementation}    
+    \clearpage
+    
+    %=========================================================
+    %   Restriction on 'N': 
+    %=========================================================
+    % \section{Handling all values of 'N' in Parallel Algorithm}
+    
+    % For the Blocking and Non-Blocking Communication there is no restriction on the input matrix size dimension 'N' and the number of threads in the MPI\_Communication - 'SIZE'. 
+    % \begin{itemize}
+    %         \item When 'N' is a multiple of 'SIZE' we simply give CHUNK\_SIZE = (N/SIZE) number of rows of matrix 'A' to each thread to compute CHUNK\_SIZE number of rows of the output matrix. 
+    %         \item When 'N' is a not a multiple of 'SIZE' we give CHUNK\_EXTRA = (N\%SIZE) number of rows of matrix 'A' to the last ranked thread in addition to the CHUNK\_SIZE rows to compute (CHUNK\_SIZE + CHUNK\_EXTRA) rows of matrix 'C'.
+    %     \end{itemize}    
+    
+    % In case of Collective communication when 'N' is a multiple of 'SIZE' we divide the work between the threads just like we do in Blocking and Non-blocking. But when 'N' is a not a multiple of 'SIZE', we compute the CHUNK\_EXTRA = (N\%SIZE) number of rows of output matrix 'C' in the process of root thread itself and parllelize the computation of all the remaining (N - CHUNK\_EXTRA) rows of 'C' just like the case when 'N' is a multiple of 'SIZE'. 
+    
+    % \clearpage
+    
+    %=========================================================
+    %   Experimental Observations of Execution Time: 
+    %   Explanation of the findings and trends of graph in accordance with the theoretical time complexity: 
+    %=========================================================
+    \section{Observations and Conclusions}
+    \subsection{Execution Time, Speedup and Efficiency}
+    % The execution time was measured for \cpp{NUM_THREADS=1,2,3,4,8,16} and \cpp{N=1000,2000,4000,8000}. This data is given in Figure 1.
+    
+    $$\text{Speed Up}=\frac{\text{Serial Execution Time }}{\text{Parallel Execution Time }}$$
+    $$\text{Efficiency}=\frac{\text{SpeedUp}}{\text{Number of Threads}}$$
+    
+    % \subsection{Table}
+    % \begin{figure}[H]
+    %     \centering
+    %     \includegraphics[width=\linewidth]{Images/MPI_Master.png}
+    %     \caption{Execution, Speedup and Efficiency Data for Matrix Multiplication}
+    %     \label{tab:1}
+    % \end{figure}
+    
+    \subsection{Time Complexity Analysis}
+    
+    % \begin{figure}[H]
+    %     \centering
+    %     \begin{subfigure}[H]{\linewidth}
+    %         \centering
+    %         \includegraphics[width=0.6\linewidth]{Images/Blocking_Parallel_Execution_Time_vs_N.png}
+    %         \caption{Blocking Matrix Multiplication}
+    %     \end{subfigure}
+    %     \begin{subfigure}[H]{\linewidth}
+    %         \centering
+    %         \includegraphics[width=0.6\linewidth]{Images/Non_Blocking_Parallel_Execution_Time_vs_N.png}
+    %         \caption{Non Blocking Matrix Multiplication}
+    %     \end{subfigure}
+    %     \begin{subfigure}[H]{\linewidth}
+    %         \centering
+    %         \includegraphics[width=0.6\linewidth]{Images/Collective_Parallel_Execution_Time_vs_N.png}
+    %         \caption{Collective Matrix Multiplication}
+    %     \end{subfigure}
+        
+    %     \caption{Matrix Multiplication Time Complexity for Different Number of Threads}
+    %     \label{fig:0}
+    % \end{figure}
+    
+    \subsection{Observations and Explanations of MPI Graph Trends}
+    % \begin{enumerate}
+    %     \item We also observe that speedup is around 1.2-2.1X when going from 1 Thread to 2 Threads and 3.1-3.3X when going to 4 Threads in Case of Blocking and Collective Matrix Multiplication. 
+    %     \item However beyond 4 Threads the speedup doesn't increase further and efficiency nose dives. 
+    %     This is due to the Quad Core nature of the Processor used in the experiments and it doesn't provide a significant speedup when going beyond 4 threads or processes (i.e its processor count).
+    %     In fact there can be a penalty to the context switching done in higher number of threads (8 and 16). 
+    %     \item The efficiency hovers between 0.7-1 when 1,2 and 4 threads are used but nosedives when more threads are used.
+    %     \item We also observed that Execution Time of Blocking and Collective Communication were close to each other with Blocking being around 2-10\% faster. However this gap became relatively smaller for bigger problem sizes.
+    %     \item We also observed that Execution Time of Non Blocking is much slower and speedup is significantly less than and Collective Communication were close to each other with Blocking being around 2-10\% faster. This gap increase as problem size increases.
+    %     \item Another observation is that at smaller problem sizes of N=1000, speedup and efficiency are lower but they increase slowly as problem sizes goes to N=8000.
+    % \end{enumerate}
+    
+    
+    %=========================================================
+    %   End
+    %=========================================================
+    
+\end{document}
