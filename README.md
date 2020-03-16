@@ -17,6 +17,7 @@ denote the set of pages linking to Pi by Bi, then I(P_i)=\sum_{P_j\in B_i} \frac
 
 **Hyperlink Matrix**
 H := [Hij] = {if Pj in Bi then 1/lj else 0} H>=0  
+H := [Hij] = {if Pj -> Pi is Edge then 1/lj else 0} H>=0  
 H is a stochastic matrix. The sum of all entries in a column is 1/0
 
 **Importance Vector**
@@ -38,7 +39,7 @@ I(k+1) = HI(k). Sequence of I(k) converge to I.
 -----
 **Google Matrix**:
 
-1. Replace all 0 columns in matrix H with 1/n to create S.  S = H + A where A := [Aij] = {if Pj in Bi then 0 else 1/n}
+1. Replace all 0 columns in matrix H with 1/n to create S.  S = H + A where A := [Aij] = {if Hi==0 then 1/n else 0}
 2. Choose a parameter alpha between 0 and 1.  G := alpha x S + (1-alpha) x 1/n x 1.
 
 **Choosing alpha**
@@ -47,4 +48,8 @@ The rate of convergence of I depends on alpha. Therefore as a compromise we use 
 
 -----
 **Final Formula**
-I(k+1) = alphaHI(k) + alphaAI(k) + (1-alpha)/n1I(k).
+I(k+1) = alpha x H x I(k) + alpha x A x I(k) + (1-alpha)/n x 1 x I(k).  
+This can be further simplified.  
+Let S(k):= Sum of all elements of I(k) and S_(k):= Sum of all elements of I(k) whose corresponding Columns in H are non-zero.  
+Now the expression simplifies to.
+I(k+1) = alpha x H x I(k) + (S(k) - alpha(S_(k)))/n x 1.  
