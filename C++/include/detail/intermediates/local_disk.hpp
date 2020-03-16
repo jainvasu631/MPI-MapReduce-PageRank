@@ -105,7 +105,7 @@ struct file_merger
                     std::string line;
                     std::getline(*it->first, line, '\r');
 
-                    if (length(line) > 0)
+                    if (line.size() > 0)
                     {
                         std::istringstream l(line);
                         l >> it->second;
@@ -490,7 +490,7 @@ class local_disk : detail::noncopyable
     }
 
     // receive intermediate result
-    bool const insert(typename key_type                     const &key,
+    bool const insert(key_type                     const &key,
                       typename reduce_task_type::value_type const &value)
     {
         size_t const partition = partitioner_(key, num_partitions_);
