@@ -23,6 +23,7 @@ class PageRank{
         static constexpr Value ALPHA = 0.85;
         static constexpr Value BETA = 1/ALPHA-1;
         static constexpr Value GAMMA = 1/ALPHA;
+        static constexpr Value TOL = 1.0e-4;
         
         // Recalculate The Factor.
         static Value calculateFactor(const Column& pageRanks, const Column& hyperlink){
@@ -55,31 +56,38 @@ class PageRank{
         static Column calculatePageRank(const Graph& graph){
             const Size N = graph.numVertices();
             Column pageRanks(N,0); // This will contain the PageRanks at the end of the function
-            Column pageRanks_(N,0); // Copy of pageRanks used to confirm convergence.
             Value factor; // This will be added to help converge PageRanks Column
             pageRanks[0]=1;
             const Column hyperlink = calculateHyperLinkColumn(graph.toList); 
             const Graph::FromList& fromList = graph.fromList;
+            Value norm;
+            Value new_rank;
+            Size iteration=1;
             // Main Iteration
-            for(Size iteration=1; pageRanks!=pageRanks_; iteration++){
-                cout<< "Performing "<< iteration <<" Iteration."<< endl;
+            do{
+                cout<< "Performing "<< iteration++ <<" Iteration.";
+                norm=0;
                 factor = calculateFactor(pageRanks,hyperlink);
                 auto weightOp = [hyperlink, pageRanks](Value sum, Size from){return move(sum)+hyperlink[from]*pageRanks[from];}; // Weight Function
-                for(Size i=0;i<N;i++) // Recalculate All the PageRanks.
-                    pageRanks_[i] = ALPHA*accumulate(begin(fromList[i]),end(fromList[i]),factor,weightOp);
-                swap(pageRanks_,pageRanks);
-            }
+                for(Size i=0;i<N;i++) { // Recalculate All the PageRanks.
+                    new_rank = ALPHA*accumulate(begin(fromList[i]),end(fromList[i]),factor,weightOp);
+                    norm+=abs(new_rank-pageRanks[i]);
+                    pageRanks[i]=new_rank;
+                }
+                cout<<" Current norm is "<< norm << endl;
+            } while(norm>TOL);
             return pageRanks;
         }
         // Testing Function
         static void test(const string filename){
             // Graph Creation
             auto start_graph_creation = high_resolution_clock::now();
-            const Graph graph(filename);
+            Graph graph(filename);
             auto end_graph_creation = high_resolution_clock::now();
             auto graph_creation_duration = duration_cast<milliseconds>(end_graph_creation- start_graph_creation);
             cout << "Graph Creation took " << graph_creation_duration.count()<<"ms"<<endl;
-            
+            graph.print();
+
             // PageRank Algorithm
             auto start_pageRank_algorithm = high_resolution_clock::now();
             const Column pageRanks = calculatePageRank(graph);
@@ -87,7 +95,7 @@ class PageRank{
             auto pageRank_algorithm_duration = duration_cast<milliseconds>(end_pageRank_algorithm- start_pageRank_algorithm);
             cout << "PageRank Algorithm took " << pageRank_algorithm_duration.count()<<"ms"<<endl;
             
-            printPageRank(pageRanks);
+            // printPageRank(pageRanks);
         }        
 };
 

@@ -29,8 +29,9 @@ class Graph{
         void inline sortGraph(){sortEdges();sortVertices();}
         // Form the AdjacencyList
         void inline formAdjacencyLists(){
-            toList.resize(Vertices.size());
-            fromList.resize(Vertices.size());
+            Size N = Vertices[Vertices.size()-1]+1; 
+            toList.resize(N);
+            fromList.resize(N);
             for (auto const& Edge : Edges){
                 toList[Edge.first].push_back(Edge.second);
                 fromList[Edge.second].push_back(Edge.first);
