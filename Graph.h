@@ -17,7 +17,8 @@ class Graph{
     using Edge = pair<Vertex,Vertex>;
     using EdgeList = vector<Edge>;
     using VertexList = vector<Vertex>;
-    using AdjacencyList = vector<VertexList>;
+    using ToList = vector<VertexList>;
+    using FromList = vector<VertexList>;
     
     private:
         // Function to Sort Edges
@@ -27,16 +28,21 @@ class Graph{
         // Function to Sort Graph
         void inline sortGraph(){sortEdges();sortVertices();}
         // Form the AdjacencyList
-        void inline formAdjacencyList(){
-            adjacencyList.resize(Vertices.size());
-            for (auto const& Edge : Edges)
-                adjacencyList[Edge.first].push_back(Edge.second);
+        void inline formAdjacencyLists(){
+            toList.resize(Vertices.size());
+            fromList.resize(Vertices.size());
+            for (auto const& Edge : Edges){
+                toList[Edge.first].push_back(Edge.second);
+                fromList[Edge.second].push_back(Edge.first);
+            }
+                 
         } 
 
     protected:
         VertexList Vertices;
         EdgeList Edges;
-        AdjacencyList adjacencyList;
+        ToList toList;
+        FromList fromList;
         
         void inline addEdge(Vertex from, Vertex to) {Edges.push_back(Edge(from,to));}
         void inline addVertex(Vertex vertex){Vertices.push_back(vertex);}
@@ -53,31 +59,31 @@ class Graph{
             while(inputFileStream >> from >> to)
                 addToGraph(from,to);
             sortGraph();
-            formAdjacencyList();
+            formAdjacencyLists();
         }
 
         // Find the number of Vertices
-        Size inline numVertices() {return Vertices.size();}
+        Size inline numVertices() const {return Vertices.size();}
         // Find the number of Edges
         Size inline numEdges() {return Edges.size();}
 
         // Find number of Edges Away From a Graph
-        Size inline numEdgesFromVertex(Vertex vertex) {return adjacencyList[vertex].size();}
+        Size inline numEdgesFromVertex(Vertex vertex) {return toList[vertex].size();}
 
         // Find if Graph contains Vertex.
         bool inline isVertexInGraph(Vertex vertex) {return vertex < numVertices();}
         // Find if Graph contains Edge.
-        bool inline isEdgeInGraph(Vertex from, Vertex to) {return binary_search(adjacencyList[from].begin(), adjacencyList[from].end(), to);}
+        bool inline isEdgeInGraph(Vertex from, Vertex to) {return binary_search(toList[from].begin(), toList[from].end(), to);}
 
         void print(){
             int i=0;
-            for(const VertexList& vertexList : adjacencyList){
+            for(const VertexList& vertexList : toList){
                 cout<<"From "<<i++<<" To:"; 
                 for(Vertex vertex : vertexList)
                     cout<< vertex << "->";
                 cout <<"|"<< endl;
             }
         }
-    
-    friend class Global;             
+
+    friend class PageRank;             
 };
