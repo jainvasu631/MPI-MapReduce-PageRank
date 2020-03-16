@@ -7,6 +7,7 @@
 #include "Graph.h"
 
 using namespace std;
+using namespace chrono;
 
 // Type aliases
 using Size = unsigned int;
@@ -40,6 +41,7 @@ class PageRank{
                 hyperlink[i] = (toList[i].size()>0)? 1.0/toList[i].size() : 0;
             return hyperlink;
         }
+
     public:
         // Print PageRanks in format
         static void printPageRank(const Column& pageRanks){
@@ -53,28 +55,46 @@ class PageRank{
         static Column calculatePageRank(const Graph& graph){
             const Size N = graph.numVertices();
             Column pageRanks(N,0); // This will contain the PageRanks at the end of the function
+            Column pageRanks_(N,0); // Copy of pageRanks used to confirm convergence.
             Value factor; // This will be added to help converge PageRanks Column
             pageRanks[0]=1;
             const Column hyperlink = calculateHyperLinkColumn(graph.toList); 
             const Graph::FromList& fromList = graph.fromList;
             // Main Iteration
-            for (Size i=0; i<20; i++){
+            for(Size iteration=1; pageRanks!=pageRanks_; iteration++){
+                cout<< "Performing "<< iteration <<" Iteration."<< endl;
                 factor = calculateFactor(pageRanks,hyperlink);
-                // Recalculate All the PageRanks.
                 auto weightOp = [hyperlink, pageRanks](Value sum, Size from){return move(sum)+hyperlink[from]*pageRanks[from];}; // Weight Function
-                for(Size i=0;i<N;i++)
-                    pageRanks[i] = ALPHA*accumulate(begin(fromList[i]),end(fromList[i]),factor,weightOp);
+                for(Size i=0;i<N;i++) // Recalculate All the PageRanks.
+                    pageRanks_[i] = ALPHA*accumulate(begin(fromList[i]),end(fromList[i]),factor,weightOp);
+                swap(pageRanks_,pageRanks);
             }
             return pageRanks;
+        }
+        // Testing Function
+        static void test(const string filename){
+            // Graph Creation
+            auto start_graph_creation = high_resolution_clock::now();
+            const Graph graph(filename);
+            auto end_graph_creation = high_resolution_clock::now();
+            auto graph_creation_duration = duration_cast<milliseconds>(end_graph_creation- start_graph_creation);
+            cout << "Graph Creation took " << graph_creation_duration.count()<<"ms"<<endl;
+            
+            // PageRank Algorithm
+            auto start_pageRank_algorithm = high_resolution_clock::now();
+            const Column pageRanks = calculatePageRank(graph);
+            auto end_pageRank_algorithm = high_resolution_clock::now();
+            auto pageRank_algorithm_duration = duration_cast<milliseconds>(end_pageRank_algorithm- start_pageRank_algorithm);
+            cout << "PageRank Algorithm took " << pageRank_algorithm_duration.count()<<"ms"<<endl;
+            
+            printPageRank(pageRanks);
         }        
 };
 
 // The main method
 int main(int argc, char const *argv[]){   
-    Graph graph("Tests/diamond.txt");
-    graph.print();
-
-    Column pageRanks = PageRank::calculatePageRank(graph);
-    PageRank::printPageRank(pageRanks);
+    cout << argv[argc-1] << endl;
+    string filename = argv[argc-1];
+    PageRank::test(filename);
     return 0;
 }
