@@ -4,7 +4,9 @@ MPI-MapReduce-PageRank
 Implementation
 --------------
 
-PageRank algorithm implemented using MapReduce libraries using MPI.
+**Compilation Step** - `g++ -std=c++11 -Ofast PageRank.cpp -o PageRank.o`  
+**Run Algorithm** - `./PageRank.o {Testfile}`
+<!-- PageRank algorithm implemented using MapReduce libraries using MPI. -->
 
 The PageRank Algorithm
 ---------------------

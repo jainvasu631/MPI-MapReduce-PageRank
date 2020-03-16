@@ -23,7 +23,7 @@ class PageRank{
         static constexpr Value ALPHA = 0.85;
         static constexpr Value BETA = 1/ALPHA-1;
         static constexpr Value GAMMA = 1/ALPHA;
-        static constexpr Value TOL = 1.0e-4;
+        static constexpr Value TOL = 1.0e-9;
         
         // Recalculate The Factor.
         static Value calculateFactor(const Column& pageRanks, const Column& hyperlink){
@@ -86,7 +86,7 @@ class PageRank{
             auto end_graph_creation = high_resolution_clock::now();
             auto graph_creation_duration = duration_cast<milliseconds>(end_graph_creation- start_graph_creation);
             cout << "Graph Creation took " << graph_creation_duration.count()<<"ms"<<endl;
-            graph.print();
+            // graph.print();
 
             // PageRank Algorithm
             auto start_pageRank_algorithm = high_resolution_clock::now();
