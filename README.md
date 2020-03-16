@@ -47,9 +47,15 @@ The parameter alpha has an important role. When alpha is 1 we get G:=S and when 
 The rate of convergence of I depends on alpha. Therefore as a compromise we use alpha = 1.
 
 -----
-**Final Formula**
+**Simplifying Formula**
 I(k+1) = alpha x H x I(k) + alpha x A x I(k) + (1-alpha)/n x 1 x I(k).  
-This can be further simplified.  
-Let S(k):= Sum of all elements of I(k) and S_(k):= Sum of all elements of I(k) whose corresponding Columns in H are non-zero.  
+This can be further simplified. A = J/n where J = [Ji] = {1 if Corresponding Column is 0 else 0}.Then,  
+beta := (1/alpha-1) and now M:= (J + beta x 1)/n.  
+Then I(k+1) = alpha x (H x I(k) + (J + (1/alpha-1) x 1)/n x I(k)) which simplifies to.
+I(k+1) = alpha x (H x I(k) + M x I(k)).  
+
+**Calculating M x I(k)**
+As all rows of M are identical, we can write M = 1 x N and M x I(k) = 1 x N x I(k).  
+factor:= N x I(k) = (1 + beta if Corresponding column is 0 else beta) x I(k)/n
 Now the expression simplifies to.
-I(k+1) = alpha x H x I(k) + (S(k) - alpha(S_(k)))/n x 1.  
+I(k+1) = alpha x H x I(k) + 1 x factor.  
