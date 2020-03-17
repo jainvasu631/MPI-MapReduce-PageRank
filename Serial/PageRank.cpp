@@ -12,7 +12,6 @@ using namespace chrono;
 
 class PageRank{
     private:
-        
         // Recalculate The Factor.
         static Value calculateFactor(const Column& pageRanks, const Column& hyperlink){
             Value factor=0;
@@ -27,7 +26,7 @@ class PageRank{
         // Find PageRank      
         static Column calculatePageRank(const Graph& graph){
             const Graph::Size N = graph.numVertices();
-            Column pageRanks(N,1.0/N); // This will contain the PageRanks at the end of the function
+            Column pageRanks = Utility::getInitPageRank(N); // This will contain the PageRanks at the end of the function
             Value factor; // This will be added to help converge PageRanks Column
             const Column hyperlink = Utility::calculateHyperLinkColumn(graph.toList); 
             const Graph::FromList& fromList = graph.fromList;
@@ -51,21 +50,16 @@ class PageRank{
         }
         // Testing Function
         static void test(const string filename){
-            // Graph Creation
-            auto start_graph_creation = high_resolution_clock::now();
-            Graph graph(filename);
-            auto end_graph_creation = high_resolution_clock::now();
-            auto graph_creation_duration = duration_cast<milliseconds>(end_graph_creation- start_graph_creation);
-            cout << "Graph Creation took " << graph_creation_duration.count()<<"ms"<<endl;
+            Graph graph = Utility::timedGraphCreation(filename);
             // graph.print();
-
+            auto N = graph.numVertices(); 
+            
             // PageRank Algorithm
             auto start_pageRank_algorithm = high_resolution_clock::now();
             const Column pageRanks = calculatePageRank(graph);
             auto end_pageRank_algorithm = high_resolution_clock::now();
             auto pageRank_algorithm_duration = duration_cast<milliseconds>(end_pageRank_algorithm- start_pageRank_algorithm);
             cout << "PageRank Algorithm took " << pageRank_algorithm_duration.count()<<"ms"<<endl;
-            
             // Utility::printPageRank(pageRanks);
         }        
 };

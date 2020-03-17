@@ -25,7 +25,10 @@ class Constant{
 
 class Utility{
     public:
-        static Column calculateHyperLinkColumn(const Graph& graph){return calculateHyperLinkColumn(graph.toList);}
+        // Using This Function to create the Column
+        static inline Column getInitPageRank(const Graph::Size N) {return Column(N,1.0/N);}
+
+        static inline Column calculateHyperLinkColumn(const Graph& graph){return calculateHyperLinkColumn(graph.toList);}
         // Calculate the Hyperlink Column
         static Column calculateHyperLinkColumn(const Graph::ToList& toList){
             const Graph::Size N = toList.size();
