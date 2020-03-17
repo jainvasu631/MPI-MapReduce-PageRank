@@ -8,3 +8,6 @@ PageRank:
 
 FactorCalculator:
 	$(CXX) FactorCalculator.cpp $(LIBS) $(CXXFLAGS) -o FactorCalculator.o
+
+PageRankCalculator:
+	$(CXX) PageRankCalculator.cpp $(LIBS) $(CXXFLAGS) -o PageRankCalculator.o
