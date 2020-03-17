@@ -86,7 +86,4 @@ class Graph{
         void inline addEdge(Vertex from, Vertex to) {Edges.push_back(Edge(from,to));}
         void inline addVertex(Vertex vertex){Vertices.push_back(vertex);}
         void inline addToGraph(Vertex from, Vertex to) {addVertex(from);addVertex(to);addEdge(from,to);}
-
-
-    friend class PageRank; 
 };
