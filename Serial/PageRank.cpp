@@ -52,9 +52,8 @@ class PageRank{
         // Find PageRank      
         static Column calculatePageRank(const Graph& graph){
             const Size N = graph.numVertices();
-            Column pageRanks(N,0); // This will contain the PageRanks at the end of the function
+            Column pageRanks(N,1.0/N); // This will contain the PageRanks at the end of the function
             Value factor; // This will be added to help converge PageRanks Column
-            pageRanks[0]=1;
             const Column hyperlink = calculateHyperLinkColumn(graph.toList); 
             const Graph::FromList& fromList = graph.fromList;
             Value norm;
