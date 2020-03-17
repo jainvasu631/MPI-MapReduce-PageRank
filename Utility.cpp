@@ -1,12 +1,14 @@
 // STL Includes
 #include<algorithm>
 #include<chrono>
+#include<iostream>
 #include<numeric>
 
 // Class Includes
-#include "../Graph.h"
+#include "Graph.h"
 
 using namespace std;
+using namespace std::chrono;
 
 // Type aliases
 using Value = double;
@@ -23,6 +25,7 @@ class Constant{
 
 class Utility{
     public:
+        static Column calculateHyperLinkColumn(const Graph& graph){return calculateHyperLinkColumn(graph.toList);}
         // Calculate the Hyperlink Column
         static Column calculateHyperLinkColumn(const Graph::ToList& toList){
             const Graph::Size N = toList.size();
@@ -38,6 +41,16 @@ class Utility{
             for(Graph::Size i=0; i<N;i++)
                 cout << i << " = " << pageRanks[i] << endl;
             cout << "s = " << accumulate(pageRanks.begin(),pageRanks.end(),0.0) << endl;
+        }
+
+        static Graph timedGraphCreation(const string filename){
+            // Graph Creation
+            auto start_graph_creation = high_resolution_clock::now();
+            Graph graph(filename);
+            auto end_graph_creation = high_resolution_clock::now();
+            auto graph_creation_duration = duration_cast<milliseconds>(end_graph_creation- start_graph_creation);
+            cout << "Graph Creation took " << graph_creation_duration.count()<<"ms"<<endl;
+            return graph;
         }
         
 };
