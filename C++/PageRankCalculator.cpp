@@ -63,7 +63,7 @@ class PageRankCalculator {
 
         using Iteration = mapreduce::job<Map,Reduce, mapreduce::null_combiner,Data>;
 
-        static Column performIteration(Column& pageRanks, PageRankCalculator::Data& pageRankData, FactorCalculator::Data& factorData){
+        static Value performIteration(Column& pageRanks, PageRankCalculator::Data& pageRankData, FactorCalculator::Data& factorData){
             const Value factor = FactorCalculator::calculate(pageRanks,factorData);
             pageRankData.refresh(pageRanks);
             mapreduce::specification spec;
@@ -74,9 +74,13 @@ class PageRankCalculator {
             // Put New PageRanks back into pageRanks
             const Graph::Size N = pageRanks.size();
             auto it=iteration.begin_results();
-            for(Graph::Vertex i=0; i<N;i++)
-                pageRanks[i]= Constant::ALPHA*((i==it->first)? (it++)->second + factor : factor);            
-            return pageRanks;
+            Value new_rank,norm=0;
+            for(Graph::Size i=0;i<N;i++) { // Recalculate All the PageRanks.
+                new_rank = Constant::ALPHA*((i==it->first)? (it++)->second + factor : factor);
+                norm+=abs(new_rank-pageRanks[i]);
+                pageRanks[i]=new_rank;
+            }
+            return norm;
         }
 
         static void check(mapreduce::results result){
@@ -95,18 +99,3 @@ class PageRankCalculator {
         }
         
 };
-
-int main(int argc, char **argv){
-    cout << argv[argc-1] << endl;
-    string filename = argv[argc-1];
-    Graph graph(filename);
-    const Column hyperlinks = Utility::calculateHyperLinkColumn(graph);
-    Column pageRanks = Utility::getInitPageRank(hyperlinks.size());
-
-    FactorCalculator::Data factorData(hyperlinks,pageRanks);
-    PageRankCalculator::Data pageRankData(hyperlinks,graph.toList,pageRanks);
-    
-    pageRanks = PageRankCalculator::performIteration(pageRanks,pageRankData,factorData);
-    Utility::printPageRank(pageRanks);
-    return 0;
-}
