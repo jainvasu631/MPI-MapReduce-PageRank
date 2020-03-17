@@ -40,6 +40,9 @@ class Graph{
         using ToList = vector<VertexList>;
         using FromList = vector<VertexList>;
 
+        ToList toList;
+        FromList fromList;
+
         // Default Constructor Function
         Graph() {}
         // File Constructor Function
@@ -78,8 +81,7 @@ class Graph{
     protected:
         VertexList Vertices;
         EdgeList Edges;
-        ToList toList;
-        FromList fromList;
+        
         
         void inline addEdge(Vertex from, Vertex to) {Edges.push_back(Edge(from,to));}
         void inline addVertex(Vertex vertex){Vertices.push_back(vertex);}
@@ -87,5 +89,4 @@ class Graph{
 
 
     friend class PageRank; 
-    friend class Utility;            
 };
