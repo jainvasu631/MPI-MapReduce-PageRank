@@ -6,8 +6,5 @@ LIBS = /usr/lib/x86_64-linux-gnu/libboost_system.a /usr/lib/x86_64-linux-gnu/lib
 PageRank:
 	$(CXX) PageRank.cpp $(LIBS) $(CXXFLAGS) -o PageRank.o
 
-Friend:
-	$(CXX) Friend.cpp $(LIBS) $(CXXFLAGS) -o Friend.o
-
 Factor:
 	$(CXX) Factor.cpp $(LIBS) $(CXXFLAGS) -o Factor.o
