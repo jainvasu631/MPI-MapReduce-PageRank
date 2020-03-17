@@ -8,3 +8,6 @@ PageRank:
 
 Friend:
 	$(CXX) Friend.cpp $(LIBS) $(CXXFLAGS) -o Friend.o
+
+Factor:
+	$(CXX) Factor.cpp $(LIBS) $(CXXFLAGS) -o Factor.o

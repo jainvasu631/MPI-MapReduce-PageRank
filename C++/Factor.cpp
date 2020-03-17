@@ -2,6 +2,7 @@
 #include<algorithm>
 #include<chrono>
 #include<numeric>
+#include<iostream>
 
 // Custom Includes
 #include "include/mapreduce.hpp"
@@ -9,61 +10,78 @@
 #include "../Graph.h"
 
 // Computing Factor involved in PageRank using MapReduce
-namespace Factor {
+class FactorCalculator {
+    private:
+        class Map : public mapreduce::map_task<Graph::Vertex, Value>{
+            public:
+                // Identity Map
+                template<typename Runtime>
+                void operator()(Runtime& runtime, const key_type& key, const value_type& value) const{runtime.emit_intermediate(COMMON,value);}
+            private:
+                static constexpr Graph::Size COMMON = 0;              
+        };
 
-    typedef mapreduce::job<Factor::Map,Factor::Reduce, mapreduce::null_combiner,Factor::Data<Factor::Map>> Calculation;
+        class Reduce : public mapreduce::reduce_task<Graph::Size, Value>{
+            public:
+                // Calculate Factor by Accumulation
+                template<typename Runtime, typename Iterator>
+                void operator()(Runtime& runtime, const key_type& key, Iterator it, Iterator end) const{runtime.emit(key,std::accumulate(it,end,0.0));}
+        };
+    public:
+        class Data : mapreduce::detail::noncopyable{
+            private:
+                const Column& Hyperlinks;
+                Column& PageRanks; 
+                Graph::Vertex sequence;
+                const Graph::Size N;
+            public:
+                // Main Constructor
+                Data(const Column& h, Column& pageRanks) :Hyperlinks(h), N(h.size()), PageRanks(pageRanks),sequence(0) {}
 
-    class Map : public mapreduce::map_task<Graph::Vertex, Value>{
-        public:
-            // Identity Map
-            template<typename Runtime>
-            void operator()(Runtime& runtime, const key_type& key, const value_type& value) const{runtime.emit_intermediate(COMMON,value);}
-        private:
-            static constexpr Graph::Size COMMON = 0;              
-    };
+                // Function to refresh the Class for another recalculation.
+                void refresh(Column& pageRanks) {PageRanks = pageRanks; sequence=0;}
+                // Function to Setup Key for each Vertex, will return False when all Keys/Vertices are emitted.
+                bool const setup_key(Map::key_type& key) {key=sequence++; return key<N;}
+                // Function to setup the (Key,Value) data i.e pageRank's factor Component
+                bool const get_data(const Map::key_type& key, Map::value_type& value) 
+                {value = ((Hyperlinks[key]>0)? Constant::BETA : Constant::GAMMA) * PageRanks[key]; return true;}      
+        };
 
-    class Reduce : public mapreduce::reduce_task<Graph::Size, Value>{
-        public:
-            // Calculate Factor by Accumulation
-            template<typename Runtime, typename Iterator>
-            void operator()(Runtime& runtime, const key_type& key, Iterator it, Iterator end) const{runtime.emit(std::accumulate(it,end,0.0));}
-    };
+        using Calculation = mapreduce::job<Map,Reduce, mapreduce::null_combiner,Data>;
 
-    template<typename MapTask>
-    class Data : mapreduce::detail::noncopyable{
-        private:
-            Column& Hyperlinks;
-            Column& pageRanks; 
-            Graph::Vertex sequence;
-            Graph::Size N;
-        public:
-            Data(const Column& h, Column& pg) :Hyperlinks(h), pageRanks(pg),sequence(0),N(h.size()) {}
-            
-            // Function to Setup Key for each Vertex, will return False when all Keys/Vertices are emitted.
-            bool const setup_key(typename MapTask::key_type& key) {key=sequence++; return key<N;}
-            // Function to setup the (Key,Value) data i.e pageRank's factor Component
-            bool const get_data(typename MapTask::key_type const &key, typename MapTask::value_type& value) 
-            {value = ((Hyperlinks[key]>0)? Constants::BETA : Constants::GAMMA) * pageRanks[key]; return true;}      
-    };
-}
+        static Value calculate(Column& pageRanks, Data& data){
+            data.refresh(pageRanks);
+            mapreduce::specification spec;
+            Calculation calculation(data,spec);
+            mapreduce::results result;
+            calculation.run<mapreduce::schedule_policy::cpu_parallel<Calculation>>(result);
+            return (calculation.begin_results()->second)/pageRanks.size(); // The factor
+        }
+
+        static void check(mapreduce::results result){
+            // output the results
+            std::cout << "\n\n  " << "Map:";
+            std::cout << "\n    " << "Total Map keys                           : " << result.counters.map_keys_executed;
+            std::cout << "\n    " << "Map keys processed                       : " << result.counters.map_keys_completed;
+            std::cout << "\n    " << "Map key processing errors                : " << result.counters.map_key_errors;
+            std::cout << "\n    " << "Number of Map Tasks run (in parallel)    : " << result.counters.actual_map_tasks;
+            std::cout << "\n\n  " << "Reduce:";
+            std::cout << "\n    " << "Number of Reduce Tasks run (in parallel) : " << result.counters.actual_reduce_tasks;
+            std::cout << "\n    " << "Number of Result Files                   : " << result.counters.num_result_files;
+            std::cout << "\n    " << "Total Reduce keys                        : " << result.counters.reduce_keys_executed;
+            std::cout << "\n    " << "Reduce keys processed                    : " << result.counters.reduce_keys_completed;
+            std::cout << "\n    " << "Reduce key processing errors             : " << result.counters.reduce_key_errors << std::endl;
+        }
+        
+};
 
 int main(int argc, char **argv){
-    
-    
     cout << argv[argc-1] << endl;
     string filename = argv[argc-1];
-    Graph graph(filename);
-    Graph::Size N = graph.numVertices();
-    Column hyperlinks = Utility::calculateHyperLinkColumn(graph);
-    Column pageRanks(N,1.0/N);
-    
-
-    Factor::Calculation::datasource_type data(hyperlinks,pageRanks);
-    
-    mapreduce::specification spec;
-    mapreduce::results result;
-    Factor::Calculation calculation(data,spec);
-    
-    calculation.run<mapreduce::schedule_policy::cpu_parallel<Factor::Calculation>>(result);
+    const Column hyperlinks = Utility::calculateHyperLinkColumn(Graph(filename));
+    Column pageRanks = Utility::getInitPageRank(hyperlinks.size());
+    FactorCalculator::Data factorData(hyperlinks,pageRanks);
+    Value factor = FactorCalculator::calculate(pageRanks,factorData);
+    cout << "The factor is " << factor <<endl; 
     return 0;
 }
