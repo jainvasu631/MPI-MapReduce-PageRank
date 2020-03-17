@@ -86,5 +86,6 @@ class Graph{
         void inline addToGraph(Vertex from, Vertex to) {addVertex(from);addVertex(to);addEdge(from,to);}
 
 
-    friend class PageRank;             
+    friend class PageRank; 
+    friend class Utility;            
 };
