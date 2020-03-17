@@ -11,15 +11,6 @@ using namespace std;
 
 
 class Graph{
-    // Type Aliases
-    using Size = unsigned int;
-    using Vertex = int;
-    using Edge = pair<Vertex,Vertex>;
-    using EdgeList = vector<Edge>;
-    using VertexList = vector<Vertex>;
-    using ToList = vector<VertexList>;
-    using FromList = vector<VertexList>;
-    
     private:
         // Function to Sort Edges
         void inline sortEdges() {sort(Edges.begin(),Edges.end());}
@@ -39,17 +30,16 @@ class Graph{
                  
         } 
 
-    protected:
-        VertexList Vertices;
-        EdgeList Edges;
-        ToList toList;
-        FromList fromList;
-        
-        void inline addEdge(Vertex from, Vertex to) {Edges.push_back(Edge(from,to));}
-        void inline addVertex(Vertex vertex){Vertices.push_back(vertex);}
-        void inline addToGraph(Vertex from, Vertex to) {addVertex(from);addVertex(to);addEdge(from,to);}
-
     public:
+        // Type Aliases
+        using Size = unsigned int;
+        using Vertex = int;
+        using Edge = pair<Vertex,Vertex>;
+        using EdgeList = vector<Edge>;
+        using VertexList = vector<Vertex>;
+        using ToList = vector<VertexList>;
+        using FromList = vector<VertexList>;
+
         // Default Constructor Function
         Graph() {}
         // File Constructor Function
@@ -64,7 +54,7 @@ class Graph{
         }
 
         // Find the number of Vertices
-        Size inline numVertices() const {return Vertices.size();}
+        Size inline numVertices() const {return toList.size();}
         // Find the number of Edges
         Size inline numEdges() {return Edges.size();}
 
@@ -85,6 +75,16 @@ class Graph{
                 cout <<"|"<< endl;
             }
         }
+    protected:
+        VertexList Vertices;
+        EdgeList Edges;
+        ToList toList;
+        FromList fromList;
+        
+        void inline addEdge(Vertex from, Vertex to) {Edges.push_back(Edge(from,to));}
+        void inline addVertex(Vertex vertex){Vertices.push_back(vertex);}
+        void inline addToGraph(Vertex from, Vertex to) {addVertex(from);addVertex(to);addEdge(from,to);}
+
 
     friend class PageRank;             
 };
