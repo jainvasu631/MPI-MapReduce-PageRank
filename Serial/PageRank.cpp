@@ -14,9 +14,6 @@ using Size = unsigned int;
 using Value = double;
 using Column = vector<Value>;
 
-// Assign the global constants
-inline void assignConstants();
-
 class PageRank{
     private:
         // Global Constants
