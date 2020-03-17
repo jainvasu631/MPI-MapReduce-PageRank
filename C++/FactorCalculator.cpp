@@ -74,14 +74,3 @@ class FactorCalculator {
         }
         
 };
-
-int main(int argc, char **argv){
-    cout << argv[argc-1] << endl;
-    string filename = argv[argc-1];
-    const Column hyperlinks = Utility::calculateHyperLinkColumn(Graph(filename));
-    Column pageRanks = Utility::getInitPageRank(hyperlinks.size());
-    FactorCalculator::Data factorData(hyperlinks,pageRanks);
-    Value factor = FactorCalculator::calculate(pageRanks,factorData);
-    cout << "The factor is " << factor <<endl; 
-    return 0;
-}
