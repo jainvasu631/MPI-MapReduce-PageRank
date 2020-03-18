@@ -30,8 +30,9 @@ class PageRank{
 
             auto kvPairs = mapreduce.map(N,Calculator::MapFactor,((void*)&calculator));// Map Part
             mapreduce.collate(NULL);
-            
             auto kvmPairs = mapreduce.reduce(Calculator::ReduceFactor,((void*)&calculator));// Reduce Part
+            mapreduce.gather(HOME);
+            kvPairs = mapreduce.map(&mapreduce,Calculator::GatherFactor,((void*)&calculator));// Gather Part
             MPI_Barrier(MPI_COMM_WORLD);
             return calculator.getFactor();
         }
@@ -39,11 +40,9 @@ class PageRank{
         static Value performIteration(Column& pageRanks, Calculator& calculator, MapReduce& mapreduce){
             calculator.refresh(pageRanks);
             Value& value = calculateFactor(calculator,mapreduce);
-            
             const Graph::Size N = pageRanks.size();
             
             MPI_Bcast((void*) &value, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-            MPI_Bcast(pageRanks.data(), N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
             
             auto kvPairs = mapreduce.map(N,Calculator::MapPageRank,((void*)&calculator));// Map Part
             mapreduce.collate(NULL);
@@ -52,16 +51,21 @@ class PageRank{
             MPI_Barrier(MPI_COMM_WORLD);
             mapreduce.gather(HOME);
             mapreduce.sort_keys(Calculator::INT_SORT);
+            
+            
             kvPairs = mapreduce.map(&mapreduce,Calculator::GatherPageRank,((void*)&calculator));// Gather Part
+            
+            MPI_Barrier(MPI_COMM_WORLD);
+            MPI_Bcast(pageRanks.data(), N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+            // if(RANK==0) Utility::printPageRank(pageRanks);
             MPI_Barrier(MPI_COMM_WORLD);
             return calculator.getNorm();
         }
-    
+
     public:
         // Find PageRank      
         static Column calculatePageRank(const Graph& graph){
             Column pageRanks = Utility::getInitPageRank(graph.numVertices()); // This will contain the PageRanks at the end of the function
-            Value factor; // This will be added to help converge PageRanks Column
             const Column hyperlinks = Utility::calculateHyperLinkColumn(graph.toList); 
             Calculator calculator(hyperlinks,graph.toList,pageRanks);
             MapReduce mapreduce(MPI_COMM_WORLD);
@@ -71,6 +75,7 @@ class PageRank{
             do{
                 cout<< "Performing "<< iteration++ <<" Iteration.";
                 norm = performIteration(pageRanks,calculator,mapreduce);
+                MPI_Bcast((void*) &norm, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
                 cout<<" Current norm is "<< norm << endl;
             } while(norm>Constant::TOL);
             return pageRanks;
@@ -86,7 +91,7 @@ class PageRank{
             auto end_pageRank_algorithm = high_resolution_clock::now();
             auto pageRank_algorithm_duration = duration_cast<milliseconds>(end_pageRank_algorithm- start_pageRank_algorithm);
             cout << "PageRank Algorithm took " << pageRank_algorithm_duration.count()<<"ms"<<endl;
-            Utility::printPageRank(pageRanks);
+            // Utility::printPageRank(pageRanks);
         }        
 };
 
@@ -98,8 +103,8 @@ int main(int argc, char const *argv[]){
     MPI_Comm_size(MPI_COMM_WORLD,&SIZE);
     
     
-    cout << argv[argc-1] << endl;
     string filename = argv[argc-1];
+    cout << filename << endl;
     PageRank::test(filename);
     
     
