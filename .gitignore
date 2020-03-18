@@ -3,9 +3,12 @@ Report/Report.*
 !Report/Report.tex
 !Report/Report.pdf
 
-#Exclude All Object and Output Files
+#Exclude All Object and Index Files
 *.o 
-*.out 
+*.out
+*.d 
+
+#Exclude All Output Files
 *.txt
 !Tests/*.txt
 
