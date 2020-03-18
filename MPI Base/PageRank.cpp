@@ -1,13 +1,14 @@
 // STL Includes
 #include<algorithm>
 #include<chrono>
-#include <iostream>
+#include<iostream>
 #include<numeric>
-#include <string>
+#include<string>
 
 // Custom Includes
 #include "../Graph.h"
 #include "../Utility.cpp"
+#include "Calculator.cpp"
 
 // MPI-MapReduce Library Includes
 #include "mpi.h"
@@ -20,24 +21,33 @@ using namespace MAPREDUCE_NS;
 
 class PageRank{
     private:
-        static Value calculateFactor(Column& pageRanks){
-            MPI_Init(&narg,&args);
-            int RANK,SIZE;
+        static Value calculateFactor(Column& pageRanks, Calculator& calculator){
+            MPI_Init(NULL,NULL);
+            int RANK,SIZE,HOME=1;
             MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
             MPI_Comm_size(MPI_COMM_WORLD,&SIZE);
+            cout<<"Proc " << RANK<< " is responding"<<endl; 
             MapReduce mapreduce(MPI_COMM_WORLD);
-            mapreduce.verbosity=2;
-            mapreduce.timer=1;
-
+            cout<<"MapReduce created"<<endl;
+            Graph::Size N = pageRanks.size();            
             MPI_Barrier(MPI_COMM_WORLD);
-            double tstart = MPI_Wtime();
+
+            // Map Part
+            auto kvPairs = mapreduce.map(N,Calculator::MapFactor,((void*)&calculator));
+            mapreduce.collate(NULL);
             
+            // Reduce Part
+            auto kvmPairs = mapreduce.reduce(Calculator::ReduceFactor,((void*)&calculator));
+            MPI_Barrier(MPI_COMM_WORLD);
+            
+            mapreduce.gather(HOME);
             MPI_Finalize();
+            return calculator.factor/N;
         }
 
         static Value performIteration(Column& pageRanks);
+    
     public:
-        
         // Find PageRank      
         static Column calculatePageRank(const Graph& graph){
             Column pageRanks = Utility::getInitPageRank(graph.numVertices()); // This will contain the PageRanks at the end of the function
@@ -56,14 +66,19 @@ class PageRank{
         static void test(const string filename){
             Graph graph = Utility::timedGraphCreation(filename);
             // graph.print();
-            auto N = graph.numVertices(); 
+
+            const Column hyperlinks = Utility::calculateHyperLinkColumn(graph.toList);
+            Column pageRanks = Utility::getInitPageRank(hyperlinks.size());
+            Calculator calculator(hyperlinks,graph.toList,pageRanks);
+            Value factor = PageRank::calculateFactor(pageRanks,calculator);
             
+            cout<<"The factor is " << factor << endl;
             // PageRank Algorithm
-            auto start_pageRank_algorithm = high_resolution_clock::now();
-            const Column pageRanks = calculatePageRank(graph);
-            auto end_pageRank_algorithm = high_resolution_clock::now();
-            auto pageRank_algorithm_duration = duration_cast<milliseconds>(end_pageRank_algorithm- start_pageRank_algorithm);
-            cout << "PageRank Algorithm took " << pageRank_algorithm_duration.count()<<"ms"<<endl;
+            // auto start_pageRank_algorithm = high_resolution_clock::now();
+            // const Column pageRanks = calculatePageRank(graph);
+            // auto end_pageRank_algorithm = high_resolution_clock::now();
+            // auto pageRank_algorithm_duration = duration_cast<milliseconds>(end_pageRank_algorithm- start_pageRank_algorithm);
+            // cout << "PageRank Algorithm took " << pageRank_algorithm_duration.count()<<"ms"<<endl;
             // Utility::printPageRank(pageRanks);
         }        
 };
