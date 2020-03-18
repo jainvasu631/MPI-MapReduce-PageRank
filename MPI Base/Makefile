@@ -1,6 +1,6 @@
 # Makefile
 CXX =		mpic++
-CXXFLAGS =	-g -O2  
+CXXFLAGS =	-Ofast  
 MPIDIR = mrmpi-7Apr14/src
 USRLIB =	-I $(MPIDIR) $(MPIDIR)/libmrmpi_mpicc.a
 

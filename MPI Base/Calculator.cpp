@@ -46,9 +46,14 @@ class Calculator{
         
         // Map Function for Factor Calculation
         static void MapFactor(Graph::Vertex key, KeyValue* keyvalue, void* calculator){
-            Value value = ((Calculator*) calculator)->getFactorValue(key);
-            auto Common = COMMON;
-            keyvalue->add((char *)&Common, VERTEX_SIZE,(char *)&value,VALUE_SIZE);
+            int rank; MPI_Comm_rank(MPI_COMM_WORLD,&rank); if (rank!=0) return;
+            Calculator* calc = (Calculator*) calculator;
+            Graph::Size N = calc->N;
+            for(Graph::Vertex i=0; i<N;i++){
+                Value value = ((Calculator*) calculator)->getFactorValue(i);
+                auto Common = COMMON;
+                keyvalue->add((char *)&Common, VERTEX_SIZE,(char *)&value,VALUE_SIZE);
+            }
         }
         
         // Reduce Function for Factor Calculation
@@ -68,12 +73,15 @@ class Calculator{
 
         // Map Function for Factor Calculation
         static void MapPageRank(Graph::Vertex key, KeyValue* keyvalue, void* calculator){
+            int rank; MPI_Comm_rank(MPI_COMM_WORLD,&rank); if (rank!=0) return;
             Calculator* calc = (Calculator*) calculator;
-            Value value = calc->factor; //cout << calc->factor << endl;
-            keyvalue->add((char*)&key, VERTEX_SIZE,(char *)&value,VALUE_SIZE);
-            for (const Graph::Vertex& to : calc->toList[key]) {
-                value = calc->getPageRankValue(key);    
-                keyvalue->add((char*)&to, VERTEX_SIZE,(char *)&value,VALUE_SIZE);
+            Value factor = calc->factor;
+            Graph::Size N = calc->N;
+            for(Graph::Vertex i=0; i<N;i++){
+                keyvalue->add((char*)&i, VERTEX_SIZE,(char *)&factor,VALUE_SIZE);
+                Value value = calc->getPageRankValue(i);
+                for (const Graph::Vertex& to : calc->toList[i]) 
+                    keyvalue->add((char*)&to, VERTEX_SIZE,(char *)&value,VALUE_SIZE);
             }
         }
         
