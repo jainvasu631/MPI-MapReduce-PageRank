@@ -63,7 +63,7 @@ The rate of convergence of I depends on alpha. Therefore as a compromise we use 
 I(k+1) = alpha x H x I(k) + alpha x A x I(k) + (1-alpha)/n x 1 x I(k).  
 This can be further simplified. A = J/n where J = [Ji] = {1 if Corresponding Column is 0 else 0}.Then,  
 beta := (1/alpha-1) and now M:= (J + beta x 1)/n.  
-Then I(k+1) = alpha x (H x I(k) + alpha x (J + (1/alpha-1) x 1)/n x I(k)) which simplifies to.
+Then I(k+1) = alpha x (H x I(k) + (J + (1/alpha-1) x 1)/n x I(k)) which simplifies to.
 I(k+1) = alpha x (H x I(k) + M x I(k)).  
 
 **Calculating M x I(k)**
