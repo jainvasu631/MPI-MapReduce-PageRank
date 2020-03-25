@@ -15,6 +15,10 @@
 using namespace std;
 using namespace MAPREDUCE_NS;
 
+#define getCharAddress(value) ((char *)&value) // Converting to char* as MapReduce Library accepts stream of chars
+#define castTo(Class, instance) ((Class*) instance) // Casting the char* back to Class* 
+#define dereferenceTo(Class, instance) (*castTo(Class, instance)) //Dereferencing the * to classes.
+
 // Calculator Class for Doing Calculation
 class Calculator{
     private:
@@ -46,51 +50,51 @@ class Calculator{
         
         // Map Function for Factor Calculation
         static void MapFactor(Graph::Vertex key, KeyValue* keyvalue, void* calculator){
-            Value value = ((Calculator*) calculator)->getFactorValue(key);
+            Value value = castTo(Calculator,calculator)->getFactorValue(key);
             auto Common = COMMON;
-            keyvalue->add((char *)&Common, VERTEX_SIZE,(char *)&value,VALUE_SIZE);
+            keyvalue->add(getCharAddress(Common),VERTEX_SIZE,getCharAddress(value),VALUE_SIZE);
         }
         
         // Reduce Function for Factor Calculation
         static void ReduceFactor(char* key, int keybytes, char* multivalue, int nvalues, int* valuebytes, KeyValue* keyvalue, void* calculator){ 
             // cout << ((nvalues==0)? "Trouble" : "Phew") <<endl;
-            Value* values = (Value*) multivalue;    
+            Value* values = castTo(Value,multivalue);    
             Value factor = accumulate(values,values+nvalues,0.0)/nvalues;
-            keyvalue->add(key, VERTEX_SIZE,(char *)&factor,VALUE_SIZE);
+            keyvalue->add(key, VERTEX_SIZE,getCharAddress(factor),VALUE_SIZE);
         }
         
         // Gather Function for putting Factor Back
         static void GatherFactor(uint64_t index, char* key, int keybytes, char* value, int valuebytes, KeyValue* keyvalue, void* calculator)
-        { ((Calculator*) calculator)->factor = *((Value*) value); } // Replace Factor
+        { castTo(Calculator,calculator)->factor = dereferenceTo(Value,value); } // Replace Factor
         
         inline Value& getFactor() {return factor;}
         inline Value& getNorm() {return norm;}
 
         // Map Function for Factor Calculation
         static void MapPageRank(Graph::Vertex key, KeyValue* keyvalue, void* calculator){
-            Calculator* calc = (Calculator*) calculator;
-            Value value = calc->factor; //cout << calc->factor << endl;
-            keyvalue->add((char*)&key, VERTEX_SIZE,(char *)&value,VALUE_SIZE);
+            Calculator* calc = castTo(Calculator,calculator);
+            Value value = calc->factor; 
+            keyvalue->add(getCharAddress(key), VERTEX_SIZE,getCharAddress(value),VALUE_SIZE);
             for (const Graph::Vertex& to : calc->toList[key]) {
                 value = calc->getPageRankValue(key);    
-                keyvalue->add((char*)&to, VERTEX_SIZE,(char *)&value,VALUE_SIZE);
+                keyvalue->add(getCharAddress(to), VERTEX_SIZE,getCharAddress(value),VALUE_SIZE);
             }
         }
         
         // Reduce Function for Factor Calculation
         static void ReducePageRank(char* key, int keybytes, char* multivalue, int nvalues, int* valuebytes, KeyValue* keyvalue, void* calculator){ 
             // cout << ((nvalues==0)? "Trouble" : "Phew") <<endl;
-            Value* values = (Value*) multivalue;
+            Value* values = castTo(Value,multivalue);
             Value new_pageRank = Constant::ALPHA *accumulate(values,values+nvalues,0.0);
-            keyvalue->add(key, VERTEX_SIZE,(char *)&new_pageRank,VALUE_SIZE);
+            keyvalue->add(key, VERTEX_SIZE,getCharAddress(new_pageRank),VALUE_SIZE);
             // cout<<new_pageRank<<endl;
         }
 
         // Gather Function for putting PageRanks Back
         static void GatherPageRank(uint64_t index,char* key, int keybytes, char* value, int valuebytes, KeyValue* keyvalue, void* calculator){ 
-            Calculator* calc = (Calculator*) calculator;
-            Value new_pageRank = *((Value*) value);
-            Value& old_pageRank = calc->PageRanks[*((Graph::Vertex*) key)]; // The old value's place
+            Calculator* calc = castTo(Calculator,calculator);
+            Value new_pageRank = dereferenceTo(Value,value);
+            Value& old_pageRank = calc->PageRanks[dereferenceTo(Graph::Vertex,key)]; // The old value's place
             calc->norm+=abs(old_pageRank-new_pageRank); // Change norm
             old_pageRank=new_pageRank; // Replace
         }
