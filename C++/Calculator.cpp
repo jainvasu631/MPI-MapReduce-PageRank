@@ -23,6 +23,7 @@ class Calculator {
                 void operator()(Runtime& runtime, const key_type& key, Iterator it, Iterator end) const{runtime.emit(key,std::accumulate(it,end,0.0));}
         };
 
+        using VertexInfo = pair<Value,Graph::VertexList>;
         class MapPageRank : public mapreduce::map_task<Graph::Vertex, VertexInfo >{
             // Function to generate Intermediate Values
             // Will map for each to Vertex a probability contribution that is summed by reduce      
@@ -50,9 +51,9 @@ class Calculator {
                 // Function to refresh the Class for another recalculation.
                 void refresh(Column& pageRanks) {PageRanks = pageRanks; sequence=0;}
                 // Function to Setup Key for each Vertex, will return False when all Keys/Vertices are emitted.
-                bool const setup_key(Map::key_type& key) {key=sequence++; return key<N;}
+                bool const setup_key(MapFactor::key_type& key) {key=sequence++; return key<N;}
                 // Function to setup the (Key,Value) data i.e pageRank's factor Component
-                bool const get_data(const Map::key_type& key, Map::value_type& value) 
+                bool const get_data(const MapFactor::key_type& key, MapFactor::value_type& value) 
                 {value = ((Hyperlinks[key]>0)? Constant::BETA : Constant::GAMMA) * PageRanks[key]; return true;}      
         };
 
@@ -70,10 +71,12 @@ class Calculator {
                 // Function to refresh the Class for another recalculation.
                 void refresh(Column& pageRanks) {factorData.refresh(pageRanks); sequence=0;}
                 // Function to Setup Key for each Vertex, will return False when all Keys/Vertices are emitted.
-                bool const setup_key(Map::key_type& key) {key=sequence++; return key<factorData.N;}
+                bool const setup_key(MapPageRank::key_type& key) {key=sequence++; return key<factorData.N;}
                 // Function to setup the (Key,Value) data i.e Value is VertexInfo
-                bool const get_data(const Map::key_type& key, Map::value_type& value) 
+                bool const get_data(const MapPageRank::key_type& key, MapPageRank::value_type& value) 
                 {value = VertexInfo(factorData.Hyperlinks[key]*factorData.PageRanks[key],toList[key]); return true;}
+            
+            friend class Calculator;
         };
 
         using Calculation = mapreduce::job<MapFactor,ReduceFactor, mapreduce::null_combiner,FactorData>;
@@ -89,7 +92,7 @@ class Calculator {
         
         static Value performIteration(Column& pageRanks, Calculator::PageRankData& pageRankData){
             pageRankData.refresh(pageRanks);
-            const Value factor = calculateFactor(factorData);
+            const Value factor = calculateFactor(pageRankData.factorData);
             mapreduce::specification spec;
             Iteration iteration(pageRankData,spec);
             mapreduce::results result;
