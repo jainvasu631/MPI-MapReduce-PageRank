@@ -1,16 +1,24 @@
 # Makefile 
 CXX = g++
 CXXFLAGS = -Ofast
-SERIAL = -pthread /usr/lib/x86_64-linux-gnu/libboost_system.a /usr/lib/x86_64-linux-gnu/libboost_iostreams.a /usr/lib/x86_64-linux-gnu/libboost_filesystem.a
 
 PGSerial:
 	$(CXX) Serial/PageRank.cpp $(CXXFLAGS) -o Serial.o
 
+
+# C++ MapReduce Library Includes
+CPPLIB = -pthread /usr/lib/x86_64-linux-gnu/libboost_system.a /usr/lib/x86_64-linux-gnu/libboost_iostreams.a /usr/lib/x86_64-linux-gnu/libboost_filesystem.a
 PGC++:
-	$(CXX) C++/PageRank.cpp $(SERIAL) $(CXXFLAGS) -o C++.o
+	$(CXX) C++/PageRank.cpp $(CPPLIB) $(CXXFLAGS) -o C++.o
 
+
+# MPI Sandia Map Reduce Library Includes 
+MPICXX = mpic++
+MPIDIR = MPI\ Base/mrmpi-7Apr14/src
+USRLIB = -I $(MPIDIR) $(MPIDIR)/libmrmpi_mpicc.a
 PGMPIBase:
-	$(CXX) MPI\ Base/PageRank.cpp $(CXXFLAGS) -o MPIBase.o
+	$(MPICC) MPI\ Base/PageRank.cpp $(USRLIB) $(CXXFLAGS) -o MPIBase.o
 
+# MPI Base -- Not yet Implemented
 PGMPISelf:
 	$(CXX) MPI\ Self/PageRank.cpp $(CXXFLAGS) -o MPISelf.o
