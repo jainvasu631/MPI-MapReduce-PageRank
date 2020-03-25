@@ -29,7 +29,7 @@ class PageRank{
             MPI_Barrier(MPI_COMM_WORLD);
 
             // Map-Reduce-Gather of Factor
-            auto kvPairs = mapreduce.map(SIZE,Calculator::MapFactor,((void*)&calculator));// Map Part
+            auto kvPairs = mapreduce.map(N,Calculator::MapFactor,((void*)&calculator));// Map Part
             mapreduce.collate(NULL);
             auto kvmPairs = mapreduce.reduce(Calculator::ReduceFactor,((void*)&calculator));// Reduce Part
             mapreduce.gather(HOME);
@@ -46,12 +46,14 @@ class PageRank{
             MPI_Bcast((void*) &value, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);// Copy pageRanks to All Processor - Expensive Operation
             
             // Map-Reduce-Gather of PageRank
-            auto kvPairs = mapreduce.map(SIZE,Calculator::MapPageRank,((void*)&calculator));// Map Part
+            auto kvPairs = mapreduce.map(N,Calculator::MapPageRank,((void*)&calculator));// Map Part
             mapreduce.collate(NULL);
             auto kvmPairs = mapreduce.reduce(Calculator::ReducePageRank,((void*)&calculator));// Reduce Part
             mapreduce.gather(HOME);
             mapreduce.sort_keys(Calculator::INT_SORT);
             kvPairs = mapreduce.map(&mapreduce,Calculator::GatherPageRank,((void*)&calculator));// Gather Part
+
+            MPI_Bcast(pageRanks.data(), N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
             return calculator.getNorm();
         }
 
