@@ -50,7 +50,7 @@ class Graph{
             ifstream inputFileStream(filename);
             Vertex from,to;
             // This parses each line and pushes the result to from and to which are then converted to the edgelist.
-            while(inputFileStream >> from >> to)
+            while(inputFileStream >> from >> to) 
                 addToGraph(from,to);
             sortGraph();
             formAdjacencyLists();
