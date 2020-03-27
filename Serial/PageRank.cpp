@@ -27,24 +27,25 @@ class PageRank{
         static Column calculatePageRank(const Graph& graph){
             const Graph::Size N = graph.numVertices();
             Column pageRanks = Utility::getInitPageRank(N); // This will contain the PageRanks at the end of the function
+            Column pageRanks_(pageRanks); // This is a copy of the PageRank Column
             Value factor; // This will be added to help converge PageRanks Column
             const Column hyperlink = Utility::calculateHyperLinkColumn(graph.toList); 
             const Graph::FromList& fromList = graph.fromList;
             Value norm;
-            Value new_rank;
             unsigned int iteration=1;
             // Main Iteration
             do{
                 cout<< "Performing "<< iteration++ <<" Iteration.";
-                norm=0;
                 factor = calculateFactor(pageRanks,hyperlink);
-                auto weightOp = [&hyperlink, &pageRanks](Value sum, Graph::Size from){return move(sum)+hyperlink[from]*pageRanks[from];}; // Weight Function
-                for(Graph::Size i=0;i<N;i++) { // Recalculate All the PageRanks.
-                    new_rank = Constant::ALPHA*accumulate(begin(fromList[i]),end(fromList[i]),factor,weightOp);
-                    norm+=abs(new_rank-pageRanks[i]);
-                    pageRanks[i]=new_rank;
-                }
+                auto weightOp = [&](Value sum, Graph::Size from){return move(sum)+hyperlink[from]*pageRanks[from];}; // Weight Function
+                auto iteration = [&](const Graph::VertexList& froms){ return Constant::ALPHA*accumulate(begin(froms),end(froms),factor,weightOp);}; // Iteration Function
+                transform(fromList.begin(), fromList.end(),pageRanks_.begin(),iteration); // Perform Iteration and put old pageRanks back
+                
+                // Find the new norm
+                auto abs_diff = [](Value a, Value b) {return abs(a-b);};
+                norm = inner_product(pageRanks.begin(),pageRanks.end(),pageRanks_.begin(),0.0,plus<Value>(),abs_diff);
                 cout<<" Current norm is "<< norm << endl;
+                pageRanks = pageRanks_;
             } while(norm>Constant::TOL);
             return pageRanks;
         }
