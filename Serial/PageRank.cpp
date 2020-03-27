@@ -38,7 +38,7 @@ class PageRank{
                 cout<< "Performing "<< iteration++ <<" Iteration.";
                 norm=0;
                 factor = calculateFactor(pageRanks,hyperlink);
-                auto weightOp = [hyperlink, pageRanks](Value sum, Graph::Size from){return move(sum)+hyperlink[from]*pageRanks[from];}; // Weight Function
+                auto weightOp = [&hyperlink, &pageRanks](Value sum, Graph::Size from){return move(sum)+hyperlink[from]*pageRanks[from];}; // Weight Function
                 for(Graph::Size i=0;i<N;i++) { // Recalculate All the PageRanks.
                     new_rank = Constant::ALPHA*accumulate(begin(fromList[i]),end(fromList[i]),factor,weightOp);
                     norm+=abs(new_rank-pageRanks[i]);
