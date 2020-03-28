@@ -40,36 +40,29 @@ class MapTask{
 class Combiner{
     public:
         using Input = vector<CombinerTuple>;
-        using Results = unordered_map<ReduceKey,ReduceValue>;
+        using Results = unordered_map<ReduceKey,vector<ReduceValue>>;
 
     private:
         Results results; // Stores results of Combine Function
         Input input; // Stores Input of Combine Function
     protected:
-
-        void run();
-
-        void combine(){
-
-        }
+        // Iterates over all Key-Value tuples and Combines those Tuples which have Same Key into a List
+        void run(){for(auto& tuple : input) results[tuple.first].push_back(tuple.second);}
 
 };
 
 class Distributor{
         public:
-        using Input = unordered_map<ReduceKey,ReduceValue>;
+        using Input = unordered_map<ReduceKey,vector<ReduceValue>>;
         using Results = vector<ReduceTuple>;
 
     private:
         Results results; // Stores results of Distribute Function
         Input input; // Stores Input of Distribute Function
     protected:
-
-        void run();
-
-        void distribute(){
-
-        }
+        // Converts the Map into a Vector to Save Memory Probably extremely inefficient
+        // Will also do other || processing stuff later
+        void run() {results = Results(input.begin(),input.end());}
 };
 
 class ReduceTask{
