@@ -60,24 +60,25 @@ class ReduceTask{
 
 class DataSource{
     public:
-        using Result = vector<MapTuple>;
+        using Results = vector<MapTuple>;
     
         // This Function is Implemented by User 
         // User is passed Key and a Value by reference.
-        // If User fills them with Data. They are inserted into the Results and User shall return True
-        // If User returns false, this implies he is done with sending Data.
+        // If User fills them with Data. They are inserted into the Results.
+        // User shall returns false if they have inserted a tuple and true if haven't and are done.
         bool const getData(MapKey& key, MapValue& value);
     private:
-        Results result; // Stores output of Result Function
+        Results results; // Stores output of Result Function
     protected:
-        
         void run(){
-            do{
-                
-            }while(true);
+            bool done;
+            while(!done){
+                MapTuple tuple;// Fresh Declaration as Tuple is passed by Reference
+                results.push_back(tuple);
+                done = getData(tuple.first,tuple.second); 
+            }
+            results.pop_back();
         }
-
-
 };
 
 class Results{
