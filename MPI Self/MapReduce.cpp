@@ -12,11 +12,17 @@ using ReduceValue = int;
 using ResultKey = int;
 using ResultValue = int;
 
+// Tuple typenames
+using MapTuple = pair<MapKey,MapValue>;
+using IntermediateTuple = pair<ReduceKey, ReduceValue>;
+using ReduceTuple = pair<ReduceKey, vector<ReduceValue>>;
+using ResultTuple = pair<ResultKey, ResultValue>;
+
 class MapTask{
     
     public:
-        using Results = vector<pair<ReduceKey,ReduceValue>>;
-        using Input = vector<pair<MapKey, MapValue>>;    
+        using Results = vector<IntermediateTuple>;
+        using Input = vector<MapTuple>;    
     
         // This Map Function is Implemented by User 
         // User is passed Key and Value by reference.
@@ -36,8 +42,8 @@ class Combiner{
 
 class ReduceTask{
     public:
-        using Results = vector<pair<ResultKey,ResultValue>>;
-        using Input = vector<pair<ReduceKey, vector<ReduceValue>>>;
+        using Results = vector<ResultTuple>;
+        using Input = vector<ReduceTuple>;
     
         // This Reduce Function is Implemented by User 
         // User is passed Key and vector of Values by reference.
@@ -53,6 +59,24 @@ class ReduceTask{
 };
 
 class DataSource{
+    public:
+        using Result = vector<MapTuple>;
+    
+        // This Function is Implemented by User 
+        // User is passed Key and a Value by reference.
+        // If User fills them with Data. They are inserted into the Results and User shall return True
+        // If User returns false, this implies he is done with sending Data.
+        bool const getData(MapKey& key, MapValue& value);
+    private:
+        Results result; // Stores output of Result Function
+    protected:
+        
+        void run(){
+            do{
+                
+            }while(true);
+        }
+
 
 };
 
