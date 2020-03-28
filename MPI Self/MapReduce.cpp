@@ -35,10 +35,21 @@ class Combiner{
 };
 
 class ReduceTask{
-    private:
-        using Results = vector<pair<ResultKey,ResultValue>>;
-        using Input = vector<pair<ResultKey, ResultValue>>;
     public:
+        using Results = vector<pair<ResultKey,ResultValue>>;
+        using Input = vector<pair<ReduceKey, vector<ReduceValue>>>;
+    
+        // This Reduce Function is Implemented by User 
+        // User is passed Key and vector of Values by reference.
+        // It does (k2,list(v2))->list(k3,v3) where (k3,v3) are created as pairs and added to results
+        void operator()(const ReduceKey& key, const vector<ReduceValue>& values, Results& results);
+    private:
+        Results results; // Stores results of Reduce Function
+        Input input; // Stores Input of Reduce Function
+    protected:
+        // Iterates over input and runs the Reduce Function
+        void run(){for(auto& tuple: input) operator()(tuple.first,tuple.second,results);}
+
 };
 
 class DataSource{
