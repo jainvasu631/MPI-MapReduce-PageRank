@@ -40,7 +40,7 @@ class MapTask{
 class Combiner{
     public:
         using Input = vector<CombinerTuple>;
-        using Results = vector<ReduceTuple>;
+        using Results = unordered_map<ReduceKey,ReduceValue>;
 
     private:
         Results results; // Stores results of Combine Function
@@ -53,6 +53,23 @@ class Combiner{
 
         }
 
+};
+
+class Distributor{
+        public:
+        using Input = unordered_map<ReduceKey,ReduceValue>;
+        using Results = vector<ReduceTuple>;
+
+    private:
+        Results results; // Stores results of Distribute Function
+        Input input; // Stores Input of Distribute Function
+    protected:
+
+        void run();
+
+        void distribute(){
+
+        }
 };
 
 class ReduceTask{
