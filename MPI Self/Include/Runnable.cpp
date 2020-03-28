@@ -12,15 +12,18 @@ class Runnable{
 
         // Explicit Constructor
         explicit Runnable(const Input& input_): input(input_), results(0){}
+
     protected:
         Results results; // Stores results of Runnable Function
         Input& input; // Stores Input of Runnable Function
         // Runner Function
         void run();
+
+        Results& getResults() {return results;}
 };
 
 template<typename T1, typename T2, typename T3, typename T4>
-class Task {
+class Task: Runnable<vector<pair<T1,T2>>,vector<pair<T3,T4>>> {
     public:
         // Alias Tuple Definitions
         using InputKey = T1;
@@ -33,16 +36,10 @@ class Task {
         
         using Input = vector<InputTuple>; 
         using Results = vector<ResultTuple>;
-        
-        // Constructor
-        explicit Task(const Input& input_): input(input_), results(0){}
 
         // User Implemented Operator    
         void operator()(const InputKey& key, const InputValue& value, Task::Results& results);
-    protected:
-        Results results; // Stores results of Runnable Function
-        Input& input; // Stores Input of Runnable Function
-        
-        // Iterates over input and runs the Operator() Function
-        void run(){for(auto& tuple: input) operator()(tuple.first,tuple.second,results);}
+    
+    // Iterates over input and runs the Operator() Function
+    protected: void run(){for(auto& tuple: this->input) operator()(tuple.first,tuple.second,this->results);}
 };
