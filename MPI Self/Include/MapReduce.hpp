@@ -18,3 +18,15 @@ using MapTuple = pair<MapKey,MapValue>;
 using CombinerTuple = pair<ReduceKey, ReduceValue>;
 using ReduceTuple = pair<ReduceKey, vector<ReduceValue>>;
 using ResultTuple = pair<ResultKey, ResultValue>;
+
+template<typename Input, typename Results>
+class Runnable{
+    public:
+        explicit Runnable(const Input& input_): input(input_){}
+    private:
+        Results results; // Stores results of Runnable Function
+        Input& input; // Stores Input of Runnable Function
+    protected:
+        // Runner Function
+        void run();
+};
