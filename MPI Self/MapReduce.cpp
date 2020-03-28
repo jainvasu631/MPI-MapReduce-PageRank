@@ -19,6 +19,7 @@ using CombinerTuple = pair<ReduceKey, ReduceValue>;
 using ReduceTuple = pair<ReduceKey, vector<ReduceValue>>;
 using ResultTuple = pair<ResultKey, ResultValue>;
 
+// Map Class
 class MapTask{
     
     public:
@@ -37,6 +38,7 @@ class MapTask{
         void run(){for(auto& tuple: input) operator()(tuple.first,tuple.second,results);}
 };
 
+// Class to Combine results from Map Class
 class Combiner{
     public:
         using Input = vector<CombinerTuple>;
@@ -51,6 +53,7 @@ class Combiner{
 
 };
 
+// Class to Distribute results to different Reduce Class
 class Distributor{
         public:
         using Input = unordered_map<ReduceKey,vector<ReduceValue>>;
@@ -65,6 +68,7 @@ class Distributor{
         void run() {results = Results(input.begin(),input.end());}
 };
 
+// Reduce Class
 class ReduceTask{
     public:
         using Results = vector<ResultTuple>;
@@ -83,6 +87,7 @@ class ReduceTask{
 
 };
 
+// Class to Generate Data
 class DataSource{
     public:
         using Results = vector<MapTuple>;
@@ -109,6 +114,7 @@ class DataSource{
         void run(unsigned int numKeys) {results.resize(numKeys); for(auto& tuple : results) getData(tuple.first,tuple.second);}
 };
 
+// Class to Aggregate Results From ReduceTask
 class Results{
     private:
 
