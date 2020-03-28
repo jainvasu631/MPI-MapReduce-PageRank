@@ -1,6 +1,7 @@
 #include<vector>
 #include<mpi.h>
 #include<algorithm>
+#include<unordered_map>
 
 using namespace std;
 
@@ -14,14 +15,14 @@ using ResultValue = int;
 
 // Tuple typenames
 using MapTuple = pair<MapKey,MapValue>;
-using IntermediateTuple = pair<ReduceKey, ReduceValue>;
+using CombinerTuple = pair<ReduceKey, ReduceValue>;
 using ReduceTuple = pair<ReduceKey, vector<ReduceValue>>;
 using ResultTuple = pair<ResultKey, ResultValue>;
 
 class MapTask{
     
     public:
-        using Results = vector<IntermediateTuple>;
+        using Results = vector<CombinerTuple>;
         using Input = vector<MapTuple>;    
     
         // This Map Function is Implemented by User 
@@ -37,6 +38,20 @@ class MapTask{
 };
 
 class Combiner{
+    public:
+        using Input = vector<CombinerTuple>;
+        using Results = vector<ReduceTuple>;
+
+    private:
+        Results results; // Stores results of Combine Function
+        Input input; // Stores Input of Combine Function
+    protected:
+
+        void run();
+
+        void combine(){
+
+        }
 
 };
 
