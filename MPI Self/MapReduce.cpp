@@ -70,6 +70,7 @@ class DataSource{
     private:
         Results results; // Stores output of Result Function
     protected:
+        // When number of keys is not known in advance.
         void run(){
             bool done;
             while(!done){
@@ -79,6 +80,8 @@ class DataSource{
             }
             results.pop_back();
         }
+        // When number of keys is known in advance .. More Efficient
+        void run(unsigned int numKeys) {results.resize(numKeys); for(auto& tuple : results) getData(tuple.first,tuple.second);}
 };
 
 class Results{
