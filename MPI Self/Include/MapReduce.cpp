@@ -34,32 +34,6 @@ class ReduceTask : Task<ReduceKey,vector<ReduceValue>,ResultKey,ResultValue>{
     public: using Task::Task;
 };
 
-// Class to Generate Data
-class DataSource{
-    public:
-        using Data = vector<MapTuple>;
-    
-        // This Function is Implemented by User 
-        // User is passed Key and a Value by reference.
-        // If User fills them with Data. They are inserted into the Results.
-        // User shall returns false if they have inserted a tuple and true if haven't and are done.
-        bool const getData(MapKey& key, MapValue& value);
-    private:
-        Data results; // Stores output of Result Function
-    protected:
-        // When number of keys is not known in advance.
-        void run(){
-            bool done;
-            while(!done){
-                MapTuple tuple;// Fresh Declaration as Tuple is passed by Reference
-                results.push_back(tuple);
-                done = getData(tuple.first,tuple.second); 
-            }
-            results.pop_back();
-        }
-        // When number of keys is known in advance .. More Efficient
-        void run(unsigned int numKeys) {results.resize(numKeys); for(auto& tuple : results) getData(tuple.first,tuple.second);}
-};
 
 // Class to Aggregate Results From ReduceTask
 // class Results{
