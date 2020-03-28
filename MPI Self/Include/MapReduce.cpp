@@ -2,33 +2,16 @@
 using namespace std;
 
 // Map Class
-class MapTask{
-    
-    public:
-        using Results = vector<CombinerTuple>;
-        using Input = vector<MapTuple>;    
-    
-        // This Map Function is Implemented by User 
-        // User is passed Key and Value by reference.
-        // It does (k1,v1)->list(k2,v2) where (k2,v2) are created as pairs and added to results
-        void operator()(const MapKey& key, const MapValue& value, Results& results);
-    private:
-        Results results; // Stores results of Map Function
-        Input input; // Stores Input of Map Function
-    protected:
-        // Iterates over input and runs the MapFunction
-        void run(){for(auto& tuple: input) operator()(tuple.first,tuple.second,results);}
+// This Map operator() is Implemented by User 
+// User is passed Key and Value by reference.
+// It does (k1,v1)->list(k2,v2) where (k2,v2) are created as pairs and added to results
+     
+class MapTask: Task<MapKey,MapValue,ReduceKey,ReduceValue> {
+    public: using Task::Task;
 };
 
 // Class to Combine results from Map Class
-class Combiner{
-    public:
-        using Input = vector<CombinerTuple>;
-        using Results = unordered_map<ReduceKey,vector<ReduceValue>>;
-
-    private:
-        Results results; // Stores results of Combine Function
-        Input input; // Stores Input of Combine Function
+class Combiner: Runnable<vector<CombinerTuple>,unordered_map<ReduceKey,vector<ReduceValue>>>{
     protected:
         // Iterates over all Key-Value tuples and Combines those Tuples which have Same Key into a List
         void run(){for(auto& tuple : input) results[tuple.first].push_back(tuple.second);}
@@ -36,14 +19,7 @@ class Combiner{
 };
 
 // Class to Distribute results to different Reduce Class
-class Distributor{
-        public:
-        using Input = unordered_map<ReduceKey,vector<ReduceValue>>;
-        using Results = vector<ReduceTuple>;
-
-    private:
-        Results results; // Stores results of Distribute Function
-        Input input; // Stores Input of Distribute Function
+class Distributor: Runnable<unordered_map<ReduceKey,vector<ReduceValue>>, vector<ReduceTuple>>{
     protected:
         // Converts the Map into a Vector to Save Memory Probably extremely inefficient
         // Will also do other || processing stuff later
@@ -51,28 +27,17 @@ class Distributor{
 };
 
 // Reduce Class
-class ReduceTask{
-    public:
-        using Results = vector<ResultTuple>;
-        using Input = vector<ReduceTuple>;
-    
-        // This Reduce Function is Implemented by User 
-        // User is passed Key and vector of Values by reference.
-        // It does (k2,list(v2))->list(k3,v3) where (k3,v3) are created as pairs and added to results
-        void operator()(const ReduceKey& key, const vector<ReduceValue>& values, Results& results);
-    private:
-        Results results; // Stores results of Reduce Function
-        Input input; // Stores Input of Reduce Function
-    protected:
-        // Iterates over input and runs the Reduce Function
-        void run(){for(auto& tuple: input) operator()(tuple.first,tuple.second,results);}
-
+// This Reduce operator() is Implemented by User 
+// User is passed Key and vector of Values by reference.
+// It does (k2,list(v2))->list(k3,v3) where (k3,v3) are created as pairs and added to results
+class ReduceTask : Task<ReduceKey,vector<ReduceValue>,ResultKey,ResultValue>{
+    public: using Task::Task;
 };
 
 // Class to Generate Data
 class DataSource{
     public:
-        using Results = vector<MapTuple>;
+        using Data = vector<MapTuple>;
     
         // This Function is Implemented by User 
         // User is passed Key and a Value by reference.
@@ -80,7 +45,7 @@ class DataSource{
         // User shall returns false if they have inserted a tuple and true if haven't and are done.
         bool const getData(MapKey& key, MapValue& value);
     private:
-        Results results; // Stores output of Result Function
+        Data results; // Stores output of Result Function
     protected:
         // When number of keys is not known in advance.
         void run(){
@@ -97,8 +62,14 @@ class DataSource{
 };
 
 // Class to Aggregate Results From ReduceTask
-class Results{
-    private:
+// class Results{
+//     private:
 
-    public:
-};
+//     public:
+// };
+
+int main(int argc, char const *argv[])
+{
+    /* code */
+    return 0;
+}

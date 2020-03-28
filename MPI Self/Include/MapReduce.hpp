@@ -59,6 +59,6 @@ class Task {
         Results results; // Stores results of Runnable Function
         Input& input; // Stores Input of Runnable Function
         
-        // Iterates over input and runs the MapFunction
+        // Iterates over input and runs the Operator() Function
         void run(){for(auto& tuple: input) operator()(tuple.first,tuple.second,results);}
 };
