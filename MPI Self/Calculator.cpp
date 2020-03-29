@@ -52,11 +52,11 @@ class Calculator {
 
         using Calculation = Job<MapFactor,ReduceFactor,FactorData,OutputFactor>;
     
-        // static Value calculateFactor(FactorData& factorData){
-        //     Calculation calculation(factorData,spec);
-        //     calculation.run<mapreduce::schedule_policy::cpu_parallel<Calculation>>(result);
-        //     return (calculation.begin_results()->second)/factorData.N; // The factor
-        // }
+        static Value calculateFactor(FactorData& factorData){
+            Calculation calculation(factorData);
+            OutputFactor outputFactor = calculation.run();
+            return outputFactor.getFactor(factorData.N); // The factor
+        }
         
         
 };
