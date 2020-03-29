@@ -17,18 +17,16 @@ class MapDistributor{
         using Input = MapReduce::Generator;
 
         // Constructor
-        Distributor(int numKeys_, Input input_ ): numKeys(numKeys_), input(input_), result(0) {MPI_Comm_rank(MPI_COMM_WORLD,&Rank);}
+        MapDistributor(int numKeys_, Input input_ ): numKeys(numKeys_), input(input_), result(0) 
+        {MPI_Comm_rank(MPI_COMM_WORLD,&Rank);MPI_Comm_size(MPI_COMM_WORLD,&Size);}
 
     private:
         int numKeys;
         int Rank;
+        int Size;
         Input input;
-        Results result;
+        Results& result;
         
     protected:
-        void run(){
-            int offset = numKeys/Rank;
-            int process_numKeys = 
-
-        }
+        void run();
 };
