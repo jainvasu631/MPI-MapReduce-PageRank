@@ -10,13 +10,9 @@
 using namespace std;
 
 // Temporary typenames because using templates is annoying
-// using MapKey = int;
-// using MapValue = int;
-// using ReduceKey = int;
-// using ReduceValue = int;
-// using ResultKey = int;
-// using ResultValue = int;
 
+// MapKey and MapValue may have a variable size
+// All other Key and Values must be atomic or have a fixed size.
 template<typename MapKey, typename MapValue, typename ReduceKey, typename ReduceValue, typename ResultKey, typename ResultValue, typename DataSource>
 class MapReduce{
     public:
@@ -40,9 +36,16 @@ class MapReduce{
 
         // Class to Generate Data
         class Generator: Runnable<DataSource,vector<MapTuple>>{    
-            public: bool const getData(MapKey& key, MapValue& value);
-            // When number of keys is known in advance .. More Efficient
-            protected: void run(unsigned int numKeys) {this->results.resize(numKeys); for(auto& tuple : this->results) this->getData(tuple.first,tuple.second);}
+            // User defined function. Where user is passed reference to Key,Value and a KeyId
+            public: bool const getData(int keyId, MapKey& key, MapValue& value);
+            
+            // The numkeys is the number of keys to be created from the Generator Object
+            // The offset is to allow a way to divide key generation across multiple processors.
+            protected: void run(int offset, int numKeys) {
+                this->results.resize(numKeys); 
+                for(auto& tuple : this->results) 
+                    this->getData(offset++,tuple.first,tuple.second);
+            }
         };
                 
         // Combiner Class to combine results from Map Class
