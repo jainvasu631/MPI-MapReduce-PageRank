@@ -23,13 +23,17 @@ class Calculator {
                 void operator()(Runtime& runtime, const key_type& key, Iterator it, Iterator end) const{runtime.emit(key,std::accumulate(it,end,0.0));}
         };
 
-        using VertexInfo = pair<Value,Graph::VertexList>;
         class MapPageRank : public mapreduce::map_task<Graph::Vertex, VertexInfo >{
             // Function to generate Intermediate Values
             // Will map for each to Vertex a probability contribution that is summed by reduce      
             public: template<typename Runtime>
-                void operator()(Runtime& runtime, const key_type& key, const value_type& value) const
-                {for (const Graph::Vertex& to : value.second) runtime.emit_intermediate(to, value.first);}
+                void operator()(Runtime& runtime, const key_type& key, const value_type& value) const{
+                    runtime.emit_intermediate(key, ZERO); // Emitting Zero Insures that each Node has atleast Tuple
+                    for (const Graph::Vertex& to : value.second) 
+                        runtime.emit_intermediate(to, value.first);
+                }
+            private: static constexpr Value ZERO = 0.0;              
+        
         };
 
         class ReducePageRank : public mapreduce::reduce_task<Graph::Vertex, Value>{
@@ -103,7 +107,7 @@ class Calculator {
             auto it=iteration.begin_results();
             Value new_rank,norm=0;
             for(Graph::Size i=0;i<N;i++) { // Recalculate All the PageRanks.
-                new_rank = Constant::ALPHA*((i==it->first)? (it++)->second + factor : factor);
+                new_rank = Constant::ALPHA*((it++)->second + factor);
                 norm+=abs(new_rank-pageRanks[i]);
                 pageRanks[i]=new_rank;
             }

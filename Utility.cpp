@@ -15,6 +15,7 @@ using namespace std::chrono;
 // Type aliases
 using Value = double;
 using Column = vector<Value>;
+using VertexInfo = pair<Value,Graph::VertexList>;
 
 class Constant{
     public:
