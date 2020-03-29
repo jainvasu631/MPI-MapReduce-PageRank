@@ -57,5 +57,11 @@ class Utility{
             cout << "Graph Creation took " << graph_creation_duration.count()<<"ms"<<endl;
             return graph;
         }
+
+        // Find the new l1 norm    
+        static inline Value calculateNorm(const Column& pageRanks, const Column& pageRanks_){
+            auto abs_diff = [](Value a, Value b) {return abs(a-b);};
+            return inner_product(pageRanks.begin(),pageRanks.end(),pageRanks_.begin(),0.0,plus<Value>(),abs_diff);
+        }
         
 };

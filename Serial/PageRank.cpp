@@ -39,11 +39,8 @@ class PageRank{
                 factor = calculateFactor(pageRanks,hyperlink);
                 auto weightOp = [&](Value sum, Graph::Size from){return move(sum)+hyperlink[from]*pageRanks[from];}; // Weight Function
                 auto iteration = [&](const Graph::VertexList& froms){ return Constant::ALPHA*accumulate(begin(froms),end(froms),factor,weightOp);}; // Iteration Function
-                transform(fromList.begin(), fromList.end(),pageRanks_.begin(),iteration); // Perform Iteration and put old pageRanks back
-                
-                // Find the new norm
-                auto abs_diff = [](Value a, Value b) {return abs(a-b);};
-                norm = inner_product(pageRanks.begin(),pageRanks.end(),pageRanks_.begin(),0.0,plus<Value>(),abs_diff);
+                transform(fromList.begin(), fromList.end(),pageRanks_.begin(),iteration); // Perform Iteration
+                norm = Utility::calculateNorm(pageRanks,pageRanks_);
                 cout<<" Current norm is "<< norm << endl;
                 pageRanks = pageRanks_;
             } while(norm>Constant::TOL);
