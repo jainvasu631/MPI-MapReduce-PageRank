@@ -3,10 +3,11 @@ Report/Report.*
 !Report/Report.tex
 !Report/Report.pdf
 
-#Exclude All Object and Index Files
+#Exclude All Object and Index and Compiled Header Files
 *.o 
 *.out
-*.d 
+*.d
+*.gch 
 
 #Exclude All Output Files
 *.txt
