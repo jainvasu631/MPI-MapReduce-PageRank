@@ -1,7 +1,7 @@
 #pragma once
 
 #include<vector>
-// #include<mpi.h>
+#include<mpi.h>
 #include<algorithm>
 #include<unordered_map>
 
@@ -9,11 +9,10 @@
 
 using namespace std;
 
-// Temporary typenames because using templates is annoying
-
+// Templated Class/Namespace. From Here The User Can Inherit MapTask, ReduceTask, Generator and Output Classes
 // MapKey and MapValue may have a variable size
 // All other Key and Values must be atomic or have a fixed size.
-template<typename MapKey, typename MapValue, typename ReduceKey, typename ReduceValue, typename ResultKey, typename ResultValue, typename DataSource>
+template<typename MapKey, typename MapValue, typename ReduceKey, typename ReduceValue, typename ResultKey, typename ResultValue>
 class MapReduce{
     public:
         // Tuple typenames
@@ -35,7 +34,7 @@ class MapReduce{
         using ReduceTask = Task<ReduceKey,vector<ReduceValue>,ResultKey,ResultValue>;
 
         // Class to Generate Data
-        class Generator: Runnable<DataSource,vector<MapTuple>>{    
+        class Generator: Runner<vector<MapTuple>>{    
             
             // User defined function. Where user is passed reference to Key,Value and a KeyId
             public: bool const getData(int keyId, MapKey& key, MapValue& value);
@@ -62,42 +61,11 @@ class MapReduce{
             protected: void run() {this->results = Results(this->input.begin(),this->input.end());}
         };
 
-        // Class to Aggregate Results From ReduceTask
-        class Output{
-            private:
-            
-            public:
-        };
+        // Output Class
+        // Class to Aggregate Results From ReduceTask and do final processing
+        // Will be subclasses by User to do what the user wants.
+        using Output = Runner<vector<ResultTuple>>;
 
-        // Explicit Constructor
-        MapReduce(DataSource& data) : generator(data) {MPI_Comm_rank(MPI_COMM_WORLD,&Rank);MPI_Comm_size(MPI_COMM_WORLD,&Size);}
-
-    private:
-        int Rank,Size;
-        
-        using Workload = pair<unsigned int, unsigned int>; // Will store information about the Offset and Individual Process Keys
-
-        // Used by each thread/process to find its range of work
-        Workload getProcessLoad(int totalKeys){
-            int numkeys = (totalKeys/Size);
-            int offset = Rank*numkeys;
-            int process_numKeys = (Rank==Size-1)? totalKeys-(Rank-1)*numkeys : numkeys;
-            return Workload(offset, process_numkeys);
-        }
-
-    protected:
-        Combiner combiner;
-        Distributor distributor;
-        Generator generator;
-
-        Output run(){
-            int totalKeys;
-            Workload workload = getProcessLoad(totalKeys);
-            generator.run(Workload.first,Workload.second);
-            MapTask maptask(generator.getResults());
-            maptask.run();
-            
-        }
 }; 
 
 
