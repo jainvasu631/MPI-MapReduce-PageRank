@@ -4,34 +4,47 @@
 
 using namespace std;
 
+template<typename T1>
+class InputProcessor{
+    public:
+        // Forced Aliasing so that Child Classes can inherit this
+        using Input = T1;
+
+        // Explicit Constructor
+        explicit InputProcessor(const Input& input_): input(input_) {}
+        Input& getInput() {return input;}
+
+    protected:
+        Input& input; // Stores Input of Runnable Function
+};
+
 template<typename T2>
-class Runner{
+class OutputProcessor{
     public:
         // Forced Aliasing so that Child Classes can inherit this
         using Results = T2;
 
         // Explicit Constructor
-        explicit Runner(): results(0){}
+        explicit OutputProcessor(): results(0){}
         Results& getResults() {return results;}
 
     protected:
         Results results; // Stores results of Runner
-        // Runner Function
-        void run();
 };
 
 template<typename T1, typename T2>
-class Runnable: public Runner<T2>{
+class Runnable: public InputProcessor<T1>, public OutputProcessor<T2>{
     public:
         // Forced Aliasing so that Child Classes can inherit this
         using Input = T1;
         using Results = T2;
 
         // Explicit Constructor
-        explicit Runnable(const Input& input_): Runner<Results>(), input(input_){}
+        explicit Runnable(const Input& input_): InputProcessor<Input>(input_), OutputProcessor<Results>() {}
 
-    protected:
-        Input& input; // Stores Input of Runnable Function
+        // Runner Function
+    protected: void run();
+        
 };
 
 template<typename T1, typename T2, typename T3, typename T4>
