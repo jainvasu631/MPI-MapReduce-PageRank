@@ -34,7 +34,7 @@ class MapReduce{
         using ReduceTask = Task<ReduceKey,vector<ReduceValue>,ResultKey,ResultValue>;
 
         // Class to Generate Data
-        class Generator: Runner<vector<MapTuple>>{    
+        class Generator: public Runner<vector<MapTuple>>{    
             
             // User defined function. Where user is passed reference to Key,Value and a KeyId
             public: bool const getData(int keyId, MapKey& key, MapValue& value);
@@ -49,13 +49,13 @@ class MapReduce{
         };
                 
         // Combiner Class to combine results from Map Class
-        class Combiner: Runnable<vector<CombinerTuple>,unordered_map<ReduceKey,vector<ReduceValue>>>{
+        class Combiner: public Runnable<vector<CombinerTuple>,unordered_map<ReduceKey,vector<ReduceValue>>>{
             // Iterates over all Key-Value tuples and Combines those Tuples which have Same Key into a List
             protected: void run(){for(auto& tuple : this->input) this->results[tuple.first].push_back(tuple.second);}
         };
 
         // Distributor Class to Distribute results to different Reduce Class
-        class Distributor: Runnable<unordered_map<ReduceKey,vector<ReduceValue>>, vector<ReduceTuple>>{
+        class Distributor: public Runnable<unordered_map<ReduceKey,vector<ReduceValue>>, vector<ReduceTuple>>{
             // Converts the Map into a Vector to Save Memory Probably extremely inefficient
             // Will also do other || processing stuff later
             protected: void run() {this->results = Results(this->input.begin(),this->input.end());}

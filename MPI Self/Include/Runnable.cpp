@@ -21,7 +21,7 @@ class Runner{
 };
 
 template<typename T1, typename T2>
-class Runnable : Runner<T2>{
+class Runnable: public Runner<T2>{
     public:
         // Forced Aliasing so that Child Classes can inherit this
         using Input = T1;
@@ -35,7 +35,7 @@ class Runnable : Runner<T2>{
 };
 
 template<typename T1, typename T2, typename T3, typename T4>
-class Task: Runnable<vector<pair<T1,T2>>,vector<pair<T3,T4>>> {
+class Task: public Runnable<vector<pair<T1,T2>>,vector<pair<T3,T4>>> {
     public:
         // Alias Tuple Definitions
         using InputKey = T1;
@@ -50,8 +50,11 @@ class Task: Runnable<vector<pair<T1,T2>>,vector<pair<T3,T4>>> {
         using Results = vector<ResultTuple>;
 
         // User Implemented Operator    
-        void operator()(const InputKey& key, const InputValue& value, Task::Results& results);
+        void operator()(const InputKey& key, const InputValue& value);
     
-    // Iterates over input and runs the Operator() Function
-    protected: void run(){for(auto& tuple: this->input) operator()(tuple.first,tuple.second,this->results);}
+    protected: 
+        // Iterates over input and runs the Operator() Function    
+        void run(){for(auto& tuple: this->input) operator()(tuple.first,tuple.second);}
+        // Add the Key and Value to the Results
+        inline void emit(const ResultKey& key, const ResultValue& value) {this->results.push_back(ResultTuple(key,value));}
 };
