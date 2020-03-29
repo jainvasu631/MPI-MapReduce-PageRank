@@ -34,7 +34,7 @@ class MapReduce{
         using ReduceTask = Task<ReduceKey,vector<ReduceValue>,ResultKey,ResultValue>;
 
         // Class to Generate Data
-        class Generator: public Runner<vector<MapTuple>>{    
+        class Generator: public InputProcessor<vector<MapTuple>>{    
             
             // User defined function. Where user is passed reference to Key,Value and a KeyId
             public: bool const getData(int keyId, MapKey& key, MapValue& value);
@@ -42,8 +42,8 @@ class MapReduce{
             // The numkeys is the number of keys to be created from the Generator Object
             // The offset is to allow a way to divide key generation across multiple processors.
             protected: void run(int offset, int numKeys) {
-                this->results.resize(numKeys); 
-                for(auto& tuple : this->results) 
+                this->input.resize(numKeys); 
+                for(auto& tuple : this->input) 
                     this->getData(offset++,tuple.first,tuple.second);
             }
         };
@@ -64,7 +64,7 @@ class MapReduce{
         // Output Class
         // Class to Aggregate Results From ReduceTask and do final processing
         // Will be subclasses by User to do what the user wants.
-        using Output = Runner<vector<ResultTuple>>;
+        using Output = OutputProcessor<vector<ResultTuple>>;
 
 }; 
 
