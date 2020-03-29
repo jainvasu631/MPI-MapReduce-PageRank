@@ -165,8 +165,14 @@
     \section{Design Philosophy, Objectives and Workflow}
     
     We approached this assignment with the following objectives and design philosophy:
-    % \begin{enumerate}
-    % \end{enumerate}
+    \begin{enumerate}
+        \item Implement mapreduce-pagerank using mapreduce C++ library
+        \item Implement our own mapreduce library with MPI by implementing  the functions needed for pagerank. 
+        \item  Implement pagerank using existing mapreduce MPI library.
+    In each of the above cases compare correctness of the pagrank output against the given java/python outputs.
+        \item Plot graphs with x-axis as benchmark ID, and y-axis as pagerank runtime (three graphs for the three executables).
+        \item Compare pagerank latencies across the three implementations and comment on the observations
+    \end{enumerate}
     The time measurements were done by using the \cpp{std::chrono::high_resolution_clock} 
     % and code was compiled with -O3 Optimization flag.
     These objectives were achieved to a large extent by continuous evolution of the code-base.
@@ -174,7 +180,9 @@
     
     Optimize Serial $\longrightarrow$ Parallelize algorithm $\longrightarrow$ Refactor Code $\longrightarrow$ Optimize Serial $\longrightarrow$ ... \\
     
-    Our code and scripts can be found in the repository at    \url{https://github.com/jainvasu631/MPI-MapReduce-PageRank}
+    Our code and scripts can be found in the repository at:
+    {\newline}
+    \url{https://github.com/jainvasu631/MPI-MapReduce-PageRank}
     \clearpage
     
     %=========================================================
