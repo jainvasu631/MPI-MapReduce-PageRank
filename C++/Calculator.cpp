@@ -94,7 +94,7 @@ class Calculator {
             return (calculation.begin_results()->second)/factorData.N; // The factor
         }
         
-        static Value performIteration(Column& pageRanks, Calculator::PageRankData& pageRankData){
+        static Value performIteration(Column& pageRanks,Column& pageRanks_,Calculator::PageRankData& pageRankData){
             pageRankData.refresh(pageRanks);
             const Value factor = calculateFactor(pageRankData.factorData);
             mapreduce::specification spec;
@@ -102,16 +102,10 @@ class Calculator {
             mapreduce::results result;
             iteration.run<mapreduce::schedule_policy::cpu_parallel<Iteration>>(result);
             
-            // Put New PageRanks back into pageRanks
-            const Graph::Size N = pageRanks.size();
-            auto it=iteration.begin_results();
-            Value new_rank,norm=0;
-            for(Graph::Size i=0;i<N;i++) { // Recalculate All the PageRanks.
-                new_rank = Constant::ALPHA*((it++)->second + factor);
-                norm+=abs(new_rank-pageRanks[i]);
-                pageRanks[i]=new_rank;
-            }
-            return norm;
+            // Function to calc the PageRanks from the Output of Reduce Function
+            auto calc = [&](const pair<Graph::Vertex,Value>& tuple){return Constant::ALPHA*(tuple.second+factor);};
+            transform(iteration.begin_results(),iteration.end_results(),pageRanks_.begin(),calc);
+            return Utility::calculateNorm(pageRanks,pageRanks_);
         }
 
         static void check(mapreduce::results result){
