@@ -32,9 +32,12 @@ class Calculator {
         
         class MapPageRank : public PageRankJob::MapTask{
             // Function to generate Intermediate Values
-            // Will map for each to Vertex a probability contribution that is summed by reduce      
+            // Will map for each to Vertex a probability contribution that is summed by reduce  
+            // Emitting Zero Insures that each Node has atleast Tuple    
             public: void operator()(const InputKey& key, const InputValue& value)
-                {for (const Graph::Vertex& to : value.second) emit(to, value.first);}
+                {emit(key, ZERO); for (const Graph::Vertex& to : value.second) emit(to, value.first);}
+            private: static constexpr Value ZERO = 0.0;              
+        
         };
 
         class ReducePageRank : public PageRankJob::ReduceTask{
@@ -44,14 +47,10 @@ class Calculator {
 
         class OutputPageRank: public PageRankJob::Output{
             // return the PageRanks
-            public: Value getPageRanks(Column& pageRanks, Value factor) {
-                Value norm;
-                // for(Graph::Size i=0;i<N;i++) { // Recalculate All the PageRanks.
-                //     new_rank = Constant::ALPHA*((i==it->first)? (it++)->second + factor : factor);
-                //     norm+=abs(new_rank-pageRanks[i]);
-                //     pageRanks[i]=new_rank;
-                // }
-                return norm;
+            public: void getPageRanks(Column& pageRanks_,Value factor) {
+                // Function to calc the PageRanks from the Output of Reduce Function
+                auto calc = [&](const PageRankJob::ResultTuple& tuple){return Constant::ALPHA*(tuple.second+factor);};
+                transform(results.begin(),results.end(),pageRanks_.begin(),calc);
             }
         };
 
@@ -111,12 +110,14 @@ class Calculator {
             return outputFactor.getFactor(factorData.N); // The factor
         }
 
-        static Value performIteration(Column& pageRanks, Calculator::PageRankData& pageRankData){
+        static Value performIteration(Column& pageRanks,Column& pageRanks_,Calculator::PageRankData& pageRankData){
             pageRankData.refresh(pageRanks);
             const Value factor = calculateFactor(pageRankData.factorData);
             Iteration iteration(pageRankData);
             OutputPageRank outputPageRank = iteration.run();
-            return outputPageRank.getPageRanks(pageRanks,factor); // Put New PageRanks back into pageRanks and return the Norm
+            outputPageRank.getPageRanks(pageRanks_,factor); // Put New PageRanks back into pageRanks and return the Norm
+            return Utility::calculateNorm(pageRanks,pageRanks_);
+            
         }
         
         
