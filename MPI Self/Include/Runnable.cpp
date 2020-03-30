@@ -5,27 +5,29 @@
 using namespace std;
 
 template<typename T1>
-class InputProcessor{
+class InProcess{
     public:
         // Forced Aliasing so that Child Classes can inherit this
         using Input = T1;
 
         // Explicit Constructor
-        explicit InputProcessor(const Input& input_): input(input_) {}
+        InProcess(): input(0) {} // Empty Constructor to avoid compile time errors.
+        void setInput(Input& input_) {input=move(input_);}
+        // InProcess(Input& input_): input(move(input_)) {}
         Input& getInput() {return input;}
 
     protected:
-        Input& input; // Stores Input of Runnable Function
+        Input input; // Stores Input of Runnable Function
 };
 
 template<typename T2>
-class OutputProcessor{
+class OutProcess{
     public:
         // Forced Aliasing so that Child Classes can inherit this
         using Results = T2;
 
         // Explicit Constructor
-        explicit OutputProcessor(): results(0){}
+        OutProcess(): results(0){}
         Results& getResults() {return results;}
 
     protected:
@@ -33,17 +35,18 @@ class OutputProcessor{
 };
 
 template<typename T1, typename T2>
-class Runnable: public InputProcessor<T1>, public OutputProcessor<T2>{
+class Runnable: public InProcess<T1>, public OutProcess<T2>{
     public:
         // Forced Aliasing so that Child Classes can inherit this
         using Input = T1;
         using Results = T2;
 
         // Explicit Constructor
-        explicit Runnable(const Input& input_): InputProcessor<Input>(input_), OutputProcessor<Results>() {}
+        // explicit Runnable(Input& input_): InProcess<Input>(input_), OutProcess<Results>() {}
+        explicit Runnable(): InProcess<Input>(), OutProcess<Results>() {}
 
         // Runner Function
-    protected: void run();
+        virtual void run()=0;
         
 };
 
@@ -61,13 +64,14 @@ class Task: public Runnable<vector<pair<T1,T2>>,vector<pair<T3,T4>>> {
         
         using Input = vector<InputTuple>; 
         using Results = vector<ResultTuple>;
+        using Runnable<Input,Results>::Runnable;
 
         // User Implemented Operator    
-        void operator()(const InputKey& key, const InputValue& value);
-    
-    protected: 
+        virtual void operator()(const InputKey& key, const InputValue& value)=0;
+
         // Iterates over input and runs the Operator() Function    
-        void run(){for(auto& tuple: this->input) operator()(tuple.first,tuple.second);}
+        virtual void run(){for(auto& tuple: this->input) operator()(tuple.first,tuple.second);}
+     
         // Add the Key and Value to the Results
-        inline void emit(const ResultKey& key, const ResultValue& value) {this->results.push_back(ResultTuple(key,value));}
+    protected: inline void emit(const ResultKey& key, const ResultValue& value) {this->results.push_back(ResultTuple(key,value));}
 };
