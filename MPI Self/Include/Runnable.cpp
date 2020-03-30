@@ -4,19 +4,6 @@
 
 using namespace std;
 
-template<typename T1>
-class InProcess{
-    public:
-        // Forced Aliasing so that Child Classes can inherit this
-        using Input = T1;
-
-        // Normal Constructor
-        InProcess(Input& input_) {input=move(input_);}
-        inline Input& getInput() {return input;}
-        
-    protected: Input input; // Stores Input of Runnable Function
-};
-
 template<typename T2>
 class OutProcess{
     public:
@@ -30,6 +17,19 @@ class OutProcess{
     protected: Results results; // Stores results of Runner
 };
 
+template<typename T1>
+class InProcess{
+    public:
+        // Forced Aliasing so that Child Classes can inherit this
+        using Input = T1;
+
+        // Pipe Constructor uses an Out Process to Initialize the In Process
+        InProcess(OutProcess<Input>& outprocess) {input=move(outprocess.getResults());}
+        inline Input& getInput() {return input;}
+        
+    protected: Input input; // Stores Input of Runnable Function
+};
+
 template<typename T1, typename T2>
 class Runnable: public InProcess<T1>, public OutProcess<T2>{
     public:
@@ -37,8 +37,8 @@ class Runnable: public InProcess<T1>, public OutProcess<T2>{
         using Input = T1;
         using Results = T2;
 
-        // Explicit Constructor
-        explicit Runnable(Input& input_): InProcess<Input>(input_), OutProcess<Results>() {}
+        // Explicit Pipe Constructor uses an Out Process to Initialize the In Process
+        explicit Runnable(OutProcess<Input>& outprocess): InProcess<Input>(outprocess), OutProcess<Results>() {}
         
         // Runner Function
         virtual void run()=0;

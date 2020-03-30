@@ -21,20 +21,19 @@ class Job {
             Workload workload = getProcessLoad(generator.totalKeys);
             generator.run(workload.first,workload.second);
             // cout<<"Ran Generator"<<endl;
-            MapTask maptask(generator.getResults());
-            // maptask.setInput(generator.getResults());
+            MapTask maptask(generator);
             maptask.run();
             // cout<<"Ran MapTask"<<endl;
-            Combiner combiner(maptask.getResults());
+            Combiner combiner(maptask);
             combiner.run();
             // cout<<"Ran Combiner"<<endl;
-            Distributor distributor(combiner.getResults());
+            Distributor distributor(combiner);
             distributor.run();
             // cout<<"Ran Distributor"<<endl;
-            ReduceTask reducetask(distributor.getResults());
+            ReduceTask reducetask(distributor);
             reducetask.run();
             // cout<<"Ran ReduceTask"<<endl;
-            Result result(reducetask.getResults());
+            Result result(reducetask);
             // cout<<"Ran Calculation"<<endl;
             return result;     
         }
