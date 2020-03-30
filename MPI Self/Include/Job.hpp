@@ -19,22 +19,11 @@ class Job {
         // Purely Serial Run Function -- To check if library is working
         Result run(){
             Workload workload = getProcessLoad(generator.totalKeys);
-            generator.run(workload.first,workload.second);
-            // cout<<"Ran Generator"<<endl;
-            MapTask maptask(generator);
-            maptask.run();
-            // cout<<"Ran MapTask"<<endl;
-            Combiner combiner(maptask);
-            combiner.run();
-            // cout<<"Ran Combiner"<<endl;
-            Distributor distributor(combiner);
-            distributor.run();
-            // cout<<"Ran Distributor"<<endl;
-            ReduceTask reducetask(distributor);
-            reducetask.run();
-            // cout<<"Ran ReduceTask"<<endl;
-            Result result(reducetask);
-            // cout<<"Ran Calculation"<<endl;
+            MapTask maptask = processPipe<MapTask,Generator>(generator,workload);
+            Combiner combiner = processPipe<Combiner,MapTask>(maptask);
+            Distributor distributor = processPipe<Distributor,Combiner>(combiner);
+            ReduceTask reducetask = processPipe<ReduceTask,Distributor>(distributor);
+            Result result = processPipe<Result,ReduceTask>(reducetask);
             return result;     
         }
 
@@ -50,6 +39,16 @@ class Job {
             int process_numkeys = (Rank==Size-1)? totalKeys-(Rank)*numkeys : numkeys;
             return Workload(offset, process_numkeys);
         }
+
+        // Pipe Function to process the Input and Create Output from processed Input
+        template <typename InProcess, typename Runnable> 
+        inline InProcess processPipe(Runnable& runnable) {runnable.run(); return InProcess(runnable);} 
+
+        // Pipe Function to process the Input and Create Output from processed Input with Workload
+        template <typename InProcess, typename Runnable> 
+        inline InProcess processPipe(Runnable& runnable,Workload& workload) {runnable.run(workload.first,workload.second); return InProcess(runnable);} 
+
+
 
     protected:
         Generator& generator;        
