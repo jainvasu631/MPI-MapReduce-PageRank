@@ -24,8 +24,8 @@ class MapDistributor{
         int numKeys;
         int Rank;
         int Size;
-        Input input;
-        Results& result;
+        Input& input;
+        Results result;
         
     protected:
         void run();
