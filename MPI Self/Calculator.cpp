@@ -52,12 +52,9 @@ class Calculator {
 
         class OutputPageRank: public PageRankJob::Result{
             using PageRankJob::Result::Result;
-            // return the PageRanks
-            public: void getPageRanks(Column& pageRanks_,Value factor) {
-                // Function to calc the PageRanks from the Output of Reduce Function
-                auto calc = [&](const PageRankJob::ResultTuple& tuple){return Constant::ALPHA*(tuple.second+factor);};
-                transform(input.begin(),input.end(),pageRanks_.begin(),calc);
-            }
+            // Function to calc the PageRanks from the Output of Reduce Function returns the new PageRanks
+            public: void getPageRanks(Column& pageRanks_,Value factor) 
+                {for(const PageRankJob::ResultTuple& tuple:input) pageRanks_[tuple.first]=Constant::ALPHA*(tuple.second+factor);}
         };
 
     public:
@@ -75,7 +72,7 @@ class Calculator {
 
                 // Inline function to get Value from the key
                 inline MapFactor::InputValue getValue(const MapFactor::InputKey& key) 
-                    {return((Hyperlinks[key]>0)? Constant::BETA : Constant::GAMMA) * PageRanks[key];}
+                    {return ((Hyperlinks[key]>0)? Constant::BETA : Constant::GAMMA)*PageRanks[key];}
                 
                 // Function to setup the (Key,Value) data i.e pageRank's factor Component
                 bool const getData(int keyId, MapFactor::InputKey& key, MapFactor::InputValue& value) 
