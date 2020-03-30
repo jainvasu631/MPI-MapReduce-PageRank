@@ -5,24 +5,42 @@
 // #include<algorithm>
 // #include<unordered_map>
 
-#include "MapReduce.cpp"
+#include "MapReduce.hpp"
 
 using namespace std;
 
-template <typename MapTask, typename ReduceTask, typename Generator, typename Output>
+template <typename MapTask, typename ReduceTask, typename Generator, typename Combiner, typename Distributor, typename Result>
 class Job {
     
     public:
         // Explicit Constructor
         Job(Generator& generator_) : generator(generator_) {MPI_Comm_rank(MPI_COMM_WORLD,&Rank);MPI_Comm_size(MPI_COMM_WORLD,&Size);}
 
-        Output run(){
-            int totalKeys;
-            Workload workload = getProcessLoad(totalKeys);
-            generator.run(Workload.first,Workload.second);
-            MapTask maptask(generator.getResults());
+        // Purely Serial Run Function -- To check if library is working
+        Result run(){
+            Workload workload = getProcessLoad(generator.totalKeys);
+            generator.run(workload.first,workload.second);
+            // cout<<"Ran Generator"<<endl;
+            MapTask maptask;
+            maptask.setInput(generator.getResults());
             maptask.run();
-            
+            // cout<<"Ran MapTask"<<endl;
+            Combiner combiner;
+            combiner.setInput(maptask.getResults());
+            combiner.run();
+            // cout<<"Ran Combiner"<<endl;
+            Distributor distributor;
+            distributor.setInput(combiner.getResults());
+            distributor.run();
+            // cout<<"Ran Distributor"<<endl;
+            ReduceTask reducetask;
+            reducetask.setInput(distributor.getResults());
+            reducetask.run();
+            // cout<<"Ran ReduceTask"<<endl;
+            Result result;
+            result.setInput(reducetask.getResults());
+            // cout<<"Ran Calculation"<<endl;
+            return result;     
         }
 
     private:
@@ -34,7 +52,7 @@ class Job {
         Workload getProcessLoad(int totalKeys){
             int numkeys = (totalKeys/Size);
             int offset = Rank*numkeys;
-            int process_numKeys = (Rank==Size-1)? totalKeys-(Rank-1)*numkeys : numkeys;
+            int process_numkeys = (Rank==Size-1)? totalKeys-(Rank)*numkeys : numkeys;
             return Workload(offset, process_numkeys);
         }
 
