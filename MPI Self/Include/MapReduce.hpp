@@ -50,12 +50,14 @@ class MapReduce{
                 
         // Combiner Class to combine results from Map Class
         class Combiner: public Runnable<vector<CombinerTuple>,unordered_map<ReduceKey,vector<ReduceValue>>>{
+            using Runnable<vector<CombinerTuple>,unordered_map<ReduceKey,vector<ReduceValue>>>::Runnable;
             // Iterates over all Key-Value tuples and Combines those Tuples which have Same Key into a List
             public: void run(){for(auto& tuple : this->input) this->results[tuple.first].push_back(tuple.second);}
         };
 
         // Distributor Class to Distribute results to different Reduce Class
         class Distributor: public Runnable<unordered_map<ReduceKey,vector<ReduceValue>>, vector<ReduceTuple>>{
+            using Runnable<unordered_map<ReduceKey,vector<ReduceValue>>, vector<ReduceTuple>>::Runnable;
             // Converts the Map into a Vector to Save Memory Probably extremely inefficient
             // Will also do other || processing stuff later
             public: void run() {this->results.insert(this->results.end(),this->input.begin(),this->input.end());}

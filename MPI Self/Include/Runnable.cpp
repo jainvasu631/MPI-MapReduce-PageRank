@@ -10,14 +10,11 @@ class InProcess{
         // Forced Aliasing so that Child Classes can inherit this
         using Input = T1;
 
-        // Explicit Constructor
-        InProcess(): input(0) {} // Empty Constructor to avoid compile time errors.
-        void setInput(Input& input_) {input=move(input_);}
-        // InProcess(Input& input_): input(move(input_)) {}
-        Input& getInput() {return input;}
-
-    protected:
-        Input input; // Stores Input of Runnable Function
+        // Normal Constructor
+        InProcess(Input& input_) {input=move(input_);}
+        inline Input& getInput() {return input;}
+        
+    protected: Input input; // Stores Input of Runnable Function
 };
 
 template<typename T2>
@@ -28,10 +25,9 @@ class OutProcess{
 
         // Explicit Constructor
         OutProcess(): results(0){}
-        Results& getResults() {return results;}
+        inline Results& getResults() {return results;}
 
-    protected:
-        Results results; // Stores results of Runner
+    protected: Results results; // Stores results of Runner
 };
 
 template<typename T1, typename T2>
@@ -42,9 +38,8 @@ class Runnable: public InProcess<T1>, public OutProcess<T2>{
         using Results = T2;
 
         // Explicit Constructor
-        // explicit Runnable(Input& input_): InProcess<Input>(input_), OutProcess<Results>() {}
-        explicit Runnable(): InProcess<Input>(), OutProcess<Results>() {}
-
+        explicit Runnable(Input& input_): InProcess<Input>(input_), OutProcess<Results>() {}
+        
         // Runner Function
         virtual void run()=0;
         
