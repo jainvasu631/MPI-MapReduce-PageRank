@@ -20,7 +20,7 @@ using namespace chrono;
 using namespace MAPREDUCE_NS;
 
 // MPI Constants
-int RANK,SIZE,HOME=1;
+int RANK,SIZE,HOME=1,ROOT=0;
 
 class PageRank{
     private:
@@ -33,8 +33,8 @@ class PageRank{
             mapreduce.collate(NULL);
             auto kvmPairs = mapreduce.reduce(Calculator::ReduceFactor,((void*)&calculator));// Reduce Part
             mapreduce.gather(HOME);
+            mapreduce.broadcast(ROOT);
             kvPairs = mapreduce.map(&mapreduce,Calculator::GatherFactor,((void*)&calculator));// Gather Part
-            
             return calculator.getFactor();
         }
 
@@ -43,17 +43,14 @@ class PageRank{
             Value& value = calculateFactor(calculator,mapreduce);
             const Graph::Size N = pageRanks.size();
             
-            MPI_Bcast((void*) &value, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);// Copy pageRanks to All Processor - Expensive Operation
-            
             // Map-Reduce-Gather of PageRank
             auto kvPairs = mapreduce.map(N,Calculator::MapPageRank,((void*)&calculator));// Map Part
             mapreduce.collate(NULL);
             auto kvmPairs = mapreduce.reduce(Calculator::ReducePageRank,((void*)&calculator));// Reduce Part
             mapreduce.gather(HOME);
             mapreduce.sort_keys(Calculator::INT_SORT);
+            mapreduce.broadcast(ROOT);
             kvPairs = mapreduce.map(&mapreduce,Calculator::GatherPageRank,((void*)&calculator));// Gather Part
-
-            MPI_Bcast(pageRanks.data(), N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
             return calculator.getNorm();
         }
 
@@ -70,7 +67,6 @@ class PageRank{
             do{
                 if(RANK==0) cout<< "Performing "<< iteration++ <<" Iteration.";
                 norm = performIteration(pageRanks,calculator,mapreduce);
-                MPI_Bcast((void*) &norm, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
                 if(RANK==0) cout<<" Current norm is "<< norm << endl;
             } while(norm>Constant::TOL);
             return pageRanks;
