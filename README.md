@@ -5,7 +5,6 @@ Usage and Implementation Details
 --------------
 
 **Compilation Step** - `make PG{implementation}`  
-**Run Algorithm** - `./{implementation}.o Tests/{Testfile}`
 where `{implementation}` is one of:
 
 1. Serial (Uses No MapReduce library and is Vanilla C++)
@@ -14,9 +13,15 @@ which has been made GCC 7.1 Compatible at <https://github.com/jainvasu631/mapred
 3. MPIBase (Uses MPI MapReduce C++ Library from <https://mapreduce.sandia.gov>)
 4. MPISelf (Uses our own MPI MapReduce C++ Library)
 
+**Run Algorithm** - 
+For Serial and C++ the `{implementation}.o` can be run directly as `./{implementation}.o Tests/{Testfile}`
+For MPIBase and MPISelf `mpirun` must be used - `mpirun -np {NUM_PROC} ./{implementation}.o Tests/{Testfile}` where `{NUM_PROC}` is the number of processors.
+
 **Example**  
 `make PGC++`  
 `./C++.o Tests/erdos-20000.txt`
+`make PGMPIBase`  
+`mpirun -np 4 ./MPIBase.o Tests/erdos-100000.txt`
 
 The PageRank Algorithm
 ---------------------
