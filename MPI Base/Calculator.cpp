@@ -19,6 +19,7 @@ using namespace MAPREDUCE_NS;
 #define getCharAddress(value) ((char *)&value) // Converting to char* as MapReduce Library accepts stream of chars
 #define castTo(Class, instance) ((Class*) instance) // Casting the char* back to Class* 
 #define dereferenceTo(Class, instance) (*castTo(Class, instance)) //Dereferencing the * to classes.
+#define void_this castTo(void,this) // void* of this
 
 // MPI Constants
 int RANK,SIZE,HOME=1,ROOT=0;
@@ -39,13 +40,12 @@ class Calculator{
         // Function to get the PageRank (Key,Value) data
         inline Value const getPageRankValue(const Graph::Vertex& key) {return Hyperlinks[key]* PageRanks[key];}
         
-    public:
-        // Main Constructor
-        Calculator(const Column& hyperlinks, const Graph::ToList& tList, Column& pageRanks) 
-            : N(tList.size()), toList(tList), Hyperlinks(hyperlinks), PageRanks(pageRanks){}
         // Function to refresh the Class for another recalculation.
         inline void refresh(Column& pageRanks) {PageRanks = pageRanks;norm=0;}
         
+        inline Value& getFactor() {return factor;}
+        inline Value& getNorm() {return norm;}
+
         // SIZEOF Constants
         static constexpr Graph::Vertex COMMON = 0;
         static constexpr int VERTEX_SIZE = sizeof(Graph::Vertex);
@@ -71,9 +71,6 @@ class Calculator{
         static void GatherFactor(uint64_t index, char* key, int keybytes, char* value, int valuebytes, KeyValue* keyvalue, void* calculator)
         { castTo(Calculator,calculator)->factor = dereferenceTo(Value,value); } // Replace Factor
         
-        inline Value& getFactor() {return factor;}
-        inline Value& getNorm() {return norm;}
-
         // Map Function for Factor Calculation
         static void MapPageRank(Graph::Vertex key, KeyValue* keyvalue, void* calculator){
             Calculator* calc = castTo(Calculator,calculator);
@@ -103,34 +100,36 @@ class Calculator{
             old_pageRank=new_pageRank; // Replace
         }
 
-        static Value& calculateFactor(Calculator& calculator, MapReduce& mapreduce){
-            Graph::Size N = calculator.PageRanks.size();            
+    public:
+        // Main Constructor
+        Calculator(const Column& hyperlinks, const Graph::ToList& tList, Column& pageRanks) 
+            : N(tList.size()), toList(tList), Hyperlinks(hyperlinks), PageRanks(pageRanks){}
+    
+        void calculateFactor(MapReduce& mapreduce){
             MPI_Barrier(MPI_COMM_WORLD);
 
             // Map-Reduce-Gather of Factor
-            auto kvPairs = mapreduce.map(N,Calculator::MapFactor,((void*)&calculator));// Map Part
+            auto kvPairs = mapreduce.map(N,MapFactor,void_this);// Map Part
             mapreduce.collate(NULL);
-            auto kvmPairs = mapreduce.reduce(Calculator::ReduceFactor,((void*)&calculator));// Reduce Part
+            auto kvmPairs = mapreduce.reduce(ReduceFactor,void_this);// Reduce Part
             mapreduce.gather(HOME);
             mapreduce.broadcast(ROOT);
-            kvPairs = mapreduce.map(&mapreduce,Calculator::GatherFactor,((void*)&calculator));// Gather Part
-            return calculator.getFactor();
+            kvPairs = mapreduce.map(&mapreduce,GatherFactor,void_this);// Gather Part
         }
 
-        static Value performIteration(Column& pageRanks, Calculator& calculator, MapReduce& mapreduce){
-            calculator.refresh(pageRanks);
-            Value& value = calculateFactor(calculator,mapreduce);
-            const Graph::Size N = pageRanks.size();
+        Value performIteration(Column& pageRanks, MapReduce& mapreduce){
+            refresh(pageRanks);
+            calculateFactor(mapreduce);
             
             // Map-Reduce-Gather of PageRank
-            auto kvPairs = mapreduce.map(N,Calculator::MapPageRank,((void*)&calculator));// Map Part
+            auto kvPairs = mapreduce.map(N,MapPageRank,void_this);// Map Part
             mapreduce.collate(NULL);
-            auto kvmPairs = mapreduce.reduce(Calculator::ReducePageRank,((void*)&calculator));// Reduce Part
+            auto kvmPairs = mapreduce.reduce(ReducePageRank,void_this);// Reduce Part
             mapreduce.gather(HOME);
-            mapreduce.sort_keys(Calculator::INT_SORT);
+            mapreduce.sort_keys(INT_SORT);
             mapreduce.broadcast(ROOT);
-            kvPairs = mapreduce.map(&mapreduce,Calculator::GatherPageRank,((void*)&calculator));// Gather Part
-            return calculator.getNorm();
+            kvPairs = mapreduce.map(&mapreduce,GatherPageRank,void_this);// Gather Part
+            return getNorm();
         }
     friend class PageRank;
 };
