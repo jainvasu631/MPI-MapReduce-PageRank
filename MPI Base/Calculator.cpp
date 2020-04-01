@@ -10,6 +10,7 @@
 #include "../Utility.cpp"
 
 // MPI-MapReduce Library Includes
+#include "mapreduce.h"
 #include "keyvalue.h"
 
 using namespace std;
@@ -18,6 +19,10 @@ using namespace MAPREDUCE_NS;
 #define getCharAddress(value) ((char *)&value) // Converting to char* as MapReduce Library accepts stream of chars
 #define castTo(Class, instance) ((Class*) instance) // Casting the char* back to Class* 
 #define dereferenceTo(Class, instance) (*castTo(Class, instance)) //Dereferencing the * to classes.
+#define void_this castTo(void,this) // void* of this
+
+// MPI Constants
+int RANK,SIZE,HOME=1,ROOT=0;
 
 // Calculator Class for Doing Calculation
 class Calculator{
@@ -35,13 +40,12 @@ class Calculator{
         // Function to get the PageRank (Key,Value) data
         inline Value const getPageRankValue(const Graph::Vertex& key) {return Hyperlinks[key]* PageRanks[key];}
         
-    public:
-        // Main Constructor
-        Calculator(const Column& hyperlinks, const Graph::ToList& tList, Column& pageRanks) 
-            : N(tList.size()), toList(tList), Hyperlinks(hyperlinks), PageRanks(pageRanks){}
         // Function to refresh the Class for another recalculation.
         inline void refresh(Column& pageRanks) {PageRanks = pageRanks;norm=0;}
         
+        inline Value& getFactor() {return factor;}
+        inline Value& getNorm() {return norm;}
+
         // SIZEOF Constants
         static constexpr Graph::Vertex COMMON = 0;
         static constexpr int VERTEX_SIZE = sizeof(Graph::Vertex);
@@ -67,9 +71,6 @@ class Calculator{
         static void GatherFactor(uint64_t index, char* key, int keybytes, char* value, int valuebytes, KeyValue* keyvalue, void* calculator)
         { castTo(Calculator,calculator)->factor = dereferenceTo(Value,value); } // Replace Factor
         
-        inline Value& getFactor() {return factor;}
-        inline Value& getNorm() {return norm;}
-
         // Map Function for Factor Calculation
         static void MapPageRank(Graph::Vertex key, KeyValue* keyvalue, void* calculator){
             Calculator* calc = castTo(Calculator,calculator);
@@ -97,6 +98,38 @@ class Calculator{
             Value& old_pageRank = calc->PageRanks[dereferenceTo(Graph::Vertex,key)]; // The old value's place
             calc->norm+=abs(old_pageRank-new_pageRank); // Change norm
             old_pageRank=new_pageRank; // Replace
+        }
+
+    public:
+        // Main Constructor
+        Calculator(const Column& hyperlinks, const Graph::ToList& tList, Column& pageRanks) 
+            : N(tList.size()), toList(tList), Hyperlinks(hyperlinks), PageRanks(pageRanks){}
+    
+        void calculateFactor(MapReduce& mapreduce){
+            MPI_Barrier(MPI_COMM_WORLD);
+
+            // Map-Reduce-Gather of Factor
+            auto kvPairs = mapreduce.map(N,MapFactor,void_this);// Map Part
+            mapreduce.collate(NULL);
+            auto kvmPairs = mapreduce.reduce(ReduceFactor,void_this);// Reduce Part
+            mapreduce.gather(HOME);
+            mapreduce.broadcast(ROOT);
+            kvPairs = mapreduce.map(&mapreduce,GatherFactor,void_this);// Gather Part
+        }
+
+        Value performIteration(Column& pageRanks, MapReduce& mapreduce){
+            refresh(pageRanks);
+            calculateFactor(mapreduce);
+            
+            // Map-Reduce-Gather of PageRank
+            auto kvPairs = mapreduce.map(N,MapPageRank,void_this);// Map Part
+            mapreduce.collate(NULL);
+            auto kvmPairs = mapreduce.reduce(ReducePageRank,void_this);// Reduce Part
+            mapreduce.gather(HOME);
+            mapreduce.sort_keys(INT_SORT);
+            mapreduce.broadcast(ROOT);
+            kvPairs = mapreduce.map(&mapreduce,GatherPageRank,void_this);// Gather Part
+            return getNorm();
         }
     friend class PageRank;
 };

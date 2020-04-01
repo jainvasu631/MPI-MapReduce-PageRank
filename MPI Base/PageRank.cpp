@@ -19,44 +19,7 @@ using namespace std;
 using namespace chrono;
 using namespace MAPREDUCE_NS;
 
-// MPI Constants
-int RANK,SIZE,HOME=1;
-
 class PageRank{
-    private:
-        static Value& calculateFactor(Calculator& calculator, MapReduce& mapreduce){
-            Graph::Size N = calculator.PageRanks.size();            
-            MPI_Barrier(MPI_COMM_WORLD);
-
-            // Map-Reduce-Gather of Factor
-            auto kvPairs = mapreduce.map(N,Calculator::MapFactor,((void*)&calculator));// Map Part
-            mapreduce.collate(NULL);
-            auto kvmPairs = mapreduce.reduce(Calculator::ReduceFactor,((void*)&calculator));// Reduce Part
-            mapreduce.gather(HOME);
-            kvPairs = mapreduce.map(&mapreduce,Calculator::GatherFactor,((void*)&calculator));// Gather Part
-            
-            return calculator.getFactor();
-        }
-
-        static Value performIteration(Column& pageRanks, Calculator& calculator, MapReduce& mapreduce){
-            calculator.refresh(pageRanks);
-            Value& value = calculateFactor(calculator,mapreduce);
-            const Graph::Size N = pageRanks.size();
-            
-            MPI_Bcast((void*) &value, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);// Copy pageRanks to All Processor - Expensive Operation
-            
-            // Map-Reduce-Gather of PageRank
-            auto kvPairs = mapreduce.map(N,Calculator::MapPageRank,((void*)&calculator));// Map Part
-            mapreduce.collate(NULL);
-            auto kvmPairs = mapreduce.reduce(Calculator::ReducePageRank,((void*)&calculator));// Reduce Part
-            mapreduce.gather(HOME);
-            mapreduce.sort_keys(Calculator::INT_SORT);
-            kvPairs = mapreduce.map(&mapreduce,Calculator::GatherPageRank,((void*)&calculator));// Gather Part
-
-            MPI_Bcast(pageRanks.data(), N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-            return calculator.getNorm();
-        }
-
     public:
         // Find PageRank      
         static Column calculatePageRank(const Graph& graph){
@@ -69,8 +32,7 @@ class PageRank{
             // Main Iteration
             do{
                 if(RANK==0) cout<< "Performing "<< iteration++ <<" Iteration.";
-                norm = performIteration(pageRanks,calculator,mapreduce);
-                MPI_Bcast((void*) &norm, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+                norm = calculator.performIteration(pageRanks,mapreduce);
                 if(RANK==0) cout<<" Current norm is "<< norm << endl;
             } while(norm>Constant::TOL);
             return pageRanks;
