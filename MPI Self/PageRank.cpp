@@ -12,6 +12,9 @@
 using namespace std;
 using namespace chrono;
 
+// MPI Constants
+int RANK,SIZE,HOME=1;
+
 class PageRank{
     public:
         
@@ -26,9 +29,9 @@ class PageRank{
             unsigned int iteration=1;
             // Main Iteration
             do{
-                cout<< "Performing "<< iteration++ <<" Iteration.";
+                if(RANK==0) cout<< "Performing "<< iteration++ <<" Iteration.";
                 norm=Calculator::performIteration(pageRanks,pageRanks_,pageRankData);
-                cout<<" Current norm is "<< norm << endl;
+                if(RANK==0) cout<<" Current norm is "<< norm << endl;
                 pageRanks = pageRanks_;
             } while(norm>Constant::TOL);
             return pageRanks;
@@ -44,16 +47,18 @@ class PageRank{
             const Column pageRanks = calculatePageRank(graph);
             auto end_pageRank_algorithm = high_resolution_clock::now();
             auto pageRank_algorithm_duration = duration_cast<milliseconds>(end_pageRank_algorithm- start_pageRank_algorithm);
-            cout << "PageRank Algorithm took " << pageRank_algorithm_duration.count()<<"ms"<<endl;
-            Utility::printPageRank(pageRanks);
+            if(RANK==0) cout << "PageRank Algorithm took " << pageRank_algorithm_duration.count()<<"ms"<<endl;
+            // Utility::printPageRank(pageRanks);
         }        
 };
 
 // The main method
 int main(int argc, char const *argv[]){   
     MPI_Init(NULL,NULL);
-    cout << argv[argc-1] << endl;
+    MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
+    MPI_Comm_size(MPI_COMM_WORLD,&SIZE);
     string filename = argv[argc-1];
+    if(RANK==0) cout << filename << endl;
     PageRank::test(filename);
     MPI_Finalize();
     return 0;
