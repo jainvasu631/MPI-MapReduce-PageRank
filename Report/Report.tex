@@ -188,13 +188,26 @@
     %=========================================================
     %   Data Structure and Algorithm Optimization: 
     %=========================================================
-    \section{Data Structures and Serial Optimization }
-    \subsection{Data Structure}
-    % Both Matrices A and B are stored in the form of \cpp{FlatMatrix} which is a Matrix Wrapper \cpp{class} on \cpp{std::vector<double>}. The \cpp{FlatMatrix} class allows indexation similar to \cpp{std::vector<std::vector<double>>} i.e \cpp{a(i,j)} instead of \cpp{a[i][j]}. The FlatMatrix gives us advantage of STL while also guaranteeing that all elements of the matrix our consecutively placed in memory. This is a necessity as \cpp{MPI_Scatter} and \cpp{MPI_Gather} operations require consecutive memory layout. \\
-    % Matrix A is stored in Row Major order while Matrix B is stored in Column Major Order. Since Matrix A and Matrix B are accessed Row wise and Column wise during Matrix Multiplication, this provides additional locality and hence is an Optimization. Hence During Matrix Multiplication we do \cpp{a[i][k]*b[j][k]} instead of \cpp{a[i][k]*b[k][j]}. \\
+    \section{Data Structures}
+    \subsection{Graphs}
+    Input files contain two space separated numbers (denoting 2 web-pages) in each line indicating a link from the first webpage to the second. We read and convert the input into a graph with # of nodes (N) = maximum node index in the file.
     
+    Class Graph contains - 
+    \begin{itemize}
+        \item VertexList (type vector(int))- Protected variable denoting a list of vertices (type int).
+        \item EdgeList (type vector(pair(int,int))) - Protected variable denoting list of edges (type pair(int,int)).
+        \item toList (type vector(VertexList)) - Public variable denoting a list such that toList[i] is the VertexList of all the vertices which have an edge from "i".
+        \item fromList (type vector(VertexList)) - Public variable denoting a list such that fromList[i] is the VertexList of all the vertices which have an edge to "i".
+    \end{itemize}{}
+    
+    \subsection{Columns}
+    Columns is a vector of Values where Values has type - "double". Two important uses of Columns are -
+    \begin{itemize}
+        \item PageRank
+        \item Hyperlinks
+    \end{itemize}
     \subsection{Initialization}
-    % Both Matrices A and B can be independently initialised. However as both matrices have no data dependency between them. They are initialized together in a for loop to save overhead time.
+    
     
     \subsubsection{Time Complexity Analysis}
     % The 2 parts have serial time complexity:
@@ -206,30 +219,22 @@
     
     \clearpage
     %=========================================================
-    %   Parallelization of Algorithm: 
+    %   Mapreduce C++ Library
     %=========================================================
-    \section{MPI - Message Parsing Interface}
-    Message Passing Interface (MPI) is a communication protocol for parallel programming. MPI is specifically used to allow applications to run in parallel across a number of separate computers connected by a network.
-    Message passing programs generally run the same code on multiple processors, which then communicate with one another via library calls which fall into a few general categories:
-        \begin{itemize}
-            \item Calls to initialize, manage, and terminate communications
-            \item Calls to communicate between two individual processes (point-to-point)
-            \item Calls to communicate among a group of processes (collective)
-        \end{itemize}
-    \subsection{Types of Communications}
-    \subsubsection{Point-to-point Communication}
-        \begin{itemize}
-            \item {Blocking P2P Communication} - A blocking call suspends execution of the process until the message buffer being sent/received is safe to use \cpp{(MPI_Send, MPI_Recv)}
-            \item {Non-blocking P2P Communication} - A non-blocking call just initiates communication \cpp{(MPI_Isend, MPI_Irecv)}; the status of data transfer and the success of the communication must be verified later by the programmer (\cpp{MPI_Wait} or \cpp{MPI_Test}).  
-        \end{itemize}
-    \subsubsection{Collective Communication}
-    Collective calls involve ALL processes within a communicator. There are 3 basic types of collective communications - 
-        \begin{itemize}
-            \item Synchronization \cpp{(MPI_Barrier)}
-            \item Data movement \cpp{(MPI_Bcast/Scatter/Gather/Allgather/Alltoall)} 
-            \item Collective computation (\cpp{MPI_Reduce/Allreduce/Scan}) 
-        \end{itemize}
+    \section{Mapreduce C++ Library}
+    The MapReduce C++ Library implements a single-machine platform for programming using the the Google MapReduce idiom. Users specify a map function that processes a key/value pair to generate a set of intermediate key/value pairs, and a reduce function that merges all intermediate values associated with the same intermediate key. 
     
+    The developer is required to write two classes:
+    \begin{itemize}
+        \item MapTask - It implements a mapping function to process key/value pairs generate a set of intermediate key/value pairs 
+        \item ReduceTaskim - It implements a reduce function to merges all intermediate values associated with the same intermediate key. 
+    \end{itemize}
+    There are three optional template parameters that can be used to modify the default implementation:
+    \begin{itemize}
+        \item Datasource - It implements a mechanism to feed data to the Map Tasks - on request of the MapReduce library
+        \item Combine - It can be used to partially consolidate results of the Map Task before they are passed to the Reduce Tasks
+        \item IntermediateStore - It handles storage, merging and sorting of intermediate results between the Map and Reduce phases
+    \end{itemize}{}
     \clearpage
     
     %=========================================================
