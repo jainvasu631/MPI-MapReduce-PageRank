@@ -186,6 +186,63 @@
     \clearpage
     
     %=========================================================
+    %   Mapreduce Algorithm
+    %=========================================================
+    \section{The PageRank Algorithm}
+    We will assign to each web page P a measure of its importance I(P), called the page's PageRank.
+
+    Suppose that page Pj has lj links. If one of those links is to page Pi, then Pj will pass on 1/lj of its importance to
+    Pi. The importance ranking of Pi is then the sum of all the contributions made by pages linking to it. That is, if we denote the set of pages linking to Pi by Bi, then I({P_i})=\sum{\frac{I(P_j)}{l_j}},   {P_j\in B_i}
+    % \newline 
+    
+    \begin{itemize}
+        \item \textbf{Hyperlink Matrix} \newline
+        H := [Hij] = if Pj in Bi then 1/lj else 0 \newline
+        H := [Hij] = if Pj to Pi is Edge then 1/lj else 0 \newline
+        H is a \textbf{stochastic matrix}. The sum of all entries in a column is 1/0
+        
+        \item \textbf{Importance Vector} \newline
+        I := [I(Pi)] whose components are the PageRanks or the importance rankings of all the pages.\newline
+        I = HI i.e. I is an eigenvector of H with eigenvalue 1. This is the \textbf{stationary vector} of H.
+        
+        \item \textbf{Computing I} \newline
+        H can be a very very large matrix of the order of $10^10$. However most entries of H are zero.Therefore its a sparse matrix. \newline
+        I(k+1) = HI(k). Sequence of I(k) converges to I.
+
+    \end{itemize}
+    
+    \subsection{Problems with Convergence of I}
+    \begin{enumerate}
+        \item Dangling nodes which have no out links. Then H is no more perfectly stochastic. In this case these nodes will act as importance sinks.
+        \item Circular Reference Problem. S isn't Primitive anymore and the I(k) never converges.
+        \item Importance Sink. S is reducible, i.e. when we have a sub graph of fully connected nodes with no edge coming out of it.
+    \end{enumerate}
+    
+    \subsection{Solving the Problem}
+    \subsubsection{Google Matrix}
+    Replace all 0 columns in matrix H with 1/n to create S. Thus we don't have dangling nodes anymore. \newline
+    So, S = H + A where A := [Aij] = {if Hi==0 then 1/n else 0} \newline
+    \newline
+    Choose a parameter $\alpha$ between 0 and 1. Now, with probability $\alpha$ , the random surfer is guided by S and with probability $ 1-\alpha $ , he chooses the next page at random. This solves the problem of importance sinks and circular references.  \newline
+    So, G := $\alpha$ x S + $(1-\alpha)$ x 1/n x 1.
+    \subsubsection{Choosing alpha}
+    The parameter $\alpha$ has an important role. When $\alpha$ is 1 we get G:=S and when $\alpha$ is 0 G:=$(1-\alpha)$/n x 1. The rate of convergence of I depends on $\alpha$. Therefore as a compromise we use $\alpha$ = 0.85.
+    
+    \subsection{Optimizing the Calculation}
+    \subsubsection{Simplifying Formula}
+    I(k+1) = $\alpha$ x H x I(k) + $\alpha$ x A x I(k) + $(1-\alpha)$/n x 1 x I(k). \newline
+    This can be further simplified. A = J/n where J = [Ji] = {1 if Corresponding Column is 0 else 0}.\newline
+    Let  $\beta$ := (1/$\alpha$-1) and so M:= (J + $\beta$ x 1)/n.  \newline
+    Then I(k+1) = $\alpha$ x (H x I(k) + (J + (1/$\alpha$-1) x 1)/n x I(k)) which simplifies to \newline
+    I(k+1) = $\alpha$ (H I(k) + M I(k)).
+    \subsubsection{Calculating M x I(k)}
+    As all rows of M are identical, we can write M = 1 x N and M x I(k) = 1 x N x I(k).  \newline
+    factor:= N x I(k) = (1 + beta if Corresponding column is 0 else beta) x I(k)/n
+    \newline Now the expression simplifies to 
+    I(k+1) = $\alpha$ x H x I(k) + 1 x factor.  
+    \clearpage
+    
+    %=========================================================
     %   Data Structure and Algorithm Optimization: 
     %=========================================================
     \section{Data Structures}
@@ -203,11 +260,27 @@
     \subsection{Columns}
     Columns is a vector of Values where Values has type - "double". Two important uses of Columns are -
     \begin{itemize}
-        \item PageRank
-        \item Hyperlinks
+        \item PageRank - This data structure simply contains the calculated page rank for each web-page.
+        \item Hyperlink - ith element of Hyperlink contains the importance ith node will give to the nodes it has an outgoing edge to.
     \end{itemize}
     \subsection{Initialization}
-    
+    After the graph is generated from the input file:
+    \begin{lstlisting}[caption={ Calculating Hyperlink}] 
+        static Column calculateHyperLinkColumn(const Graph::ToList& toList){
+            const Graph::Size N = toList.size();
+            Column hyperlink(N);
+            for(Graph::Size i=0;i<N;i++)
+                hyperlink[i] = (toList[i].size()>0)? 1.0/toList[i].size() : 0;
+            return hyperlink;
+        }
+    \end{lstlisting}
+    PageRank is initialised as a vector of doubles of size N with all values = 1.0/N
+    \begin{lstlisting}[caption={ Initialising PageRank}] 
+        static inline Column getInitPageRank(const Graph::Size N) {
+            return Column(N,1.0/N);
+        }
+    \end{lstlisting}
+ 
     
     \subsubsection{Time Complexity Analysis}
     % The 2 parts have serial time complexity:
