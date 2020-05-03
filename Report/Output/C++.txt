@@ -1,0 +1,147 @@
+Tests/barabasi-20000.txt
+Graph Creation took 24ms
+PageRank Algorithm took 9208ms
+Tests/barabasi-30000.txt
+Graph Creation took 39ms
+PageRank Algorithm took 19556ms
+Tests/barabasi-40000.txt
+Graph Creation took 55ms
+PageRank Algorithm took 15638ms
+Tests/barabasi-50000.txt
+Graph Creation took 10245ms
+PageRank Algorithm took 20649ms
+Tests/barabasi-60000.txt
+Graph Creation took 8244ms
+PageRank Algorithm took 24339ms
+Tests/barabasi-70000.txt
+Graph Creation took 11437ms
+PageRank Algorithm took 35194ms
+Tests/barabasi-80000.txt
+Graph Creation took 9592ms
+PageRank Algorithm took 45527ms
+Tests/barabasi-90000.txt
+Graph Creation took 6991ms
+PageRank Algorithm took 39972ms
+Tests/barabasi-100000.txt
+Graph Creation took 8096ms
+PageRank Algorithm took 48903ms
+Tests/erdos-10000.txt
+Graph Creation took 5855ms
+PageRank Algorithm took 813ms
+Tests/erdos-20000.txt
+Graph Creation took 10460ms
+PageRank Algorithm took 1628ms
+Tests/erdos-30000.txt
+Graph Creation took 22ms
+PageRank Algorithm took 3093ms
+Tests/erdos-40000.txt
+Graph Creation took 7153ms
+PageRank Algorithm took 4306ms
+Tests/erdos-50000.txt
+Graph Creation took 6805ms
+PageRank Algorithm took 4889ms
+Tests/erdos-60000.txt
+Graph Creation took 47ms
+PageRank Algorithm took 6352ms
+Tests/erdos-70000.txt
+Graph Creation took 6464ms
+PageRank Algorithm took 6923ms
+Tests/erdos-80000.txt
+Graph Creation took 11155ms
+PageRank Algorithm took 7522ms
+Tests/erdos-90000.txt
+Graph Creation took 10282ms
+PageRank Algorithm took 9078ms
+Tests/erdos-100000.txt
+Graph Creation took 9215ms
+PageRank Algorithm took 10309ms
+Tests/bull.txt
+Graph Creation took 7418ms
+PageRank Algorithm took 26ms
+Tests/chvatal.txt
+Graph Creation took 11351ms
+PageRank Algorithm took 37ms
+Tests/coxeter.txt
+Graph Creation took 11369ms
+PageRank Algorithm took 29ms
+Tests/cubical.txt
+Graph Creation took 11384ms
+PageRank Algorithm took 31ms
+Tests/diamond.txt
+Graph Creation took 0ms
+PageRank Algorithm took 32ms
+Tests/dodecahedral.txt
+Graph Creation took 11365ms
+PageRank Algorithm took 48ms
+Tests/folkman.txt
+Graph Creation took 11469ms
+PageRank Algorithm took 35ms
+Tests/franklin.txt
+Graph Creation took 11437ms
+PageRank Algorithm took 41ms
+Tests/frucht.txt
+Graph Creation took 11496ms
+PageRank Algorithm took 31ms
+Tests/grotzsch.txt
+Graph Creation took 11536ms
+PageRank Algorithm took 15ms
+Tests/heawood.txt
+Graph Creation took 11585ms
+PageRank Algorithm took 37ms
+Tests/herschel.txt
+Graph Creation took 5920ms
+PageRank Algorithm took 21ms
+Tests/house.txt
+Graph Creation took 6500ms
+PageRank Algorithm took 40ms
+Tests/housex.txt
+Graph Creation took 11495ms
+PageRank Algorithm took 29ms
+Tests/icosahedral.txt
+Graph Creation took 11849ms
+PageRank Algorithm took 28ms
+Tests/krackhardt_kite.txt
+Graph Creation took 15065ms
+PageRank Algorithm took 67ms
+Tests/levi.txt
+Graph Creation took 12268ms
+PageRank Algorithm took 54ms
+Tests/mcgee.txt
+Graph Creation took 11617ms
+PageRank Algorithm took 50ms
+Tests/meredith.txt
+Graph Creation took 11826ms
+PageRank Algorithm took 28ms
+Tests/noperfectmatching.txt
+Graph Creation took 11583ms
+PageRank Algorithm took 52ms
+Tests/nonline.txt
+Graph Creation took 11651ms
+PageRank Algorithm took 29ms
+Tests/octahedral.txt
+Graph Creation took 11731ms
+PageRank Algorithm took 28ms
+Tests/petersen.txt
+Graph Creation took 6030ms
+PageRank Algorithm took 21ms
+Tests/robertson.txt
+Graph Creation took 11756ms
+PageRank Algorithm took 42ms
+Tests/smallestcyclicgroup.txt
+Graph Creation took 11731ms
+PageRank Algorithm took 20ms
+Tests/tetrahedral.txt
+Graph Creation took 11920ms
+PageRank Algorithm took 22ms
+Tests/thomassen.txt
+Graph Creation took 11876ms
+PageRank Algorithm took 56ms
+Tests/tutte.txt
+Graph Creation took 11846ms
+PageRank Algorithm took 43ms
+Tests/uniquely3colorable.txt
+Graph Creation took 13014ms
+PageRank Algorithm took 20ms
+Tests/walther.txt
+Graph Creation took 12384ms
+PageRank Algorithm took 41ms
