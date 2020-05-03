@@ -31,9 +31,9 @@ class PageRank{
             unsigned int iteration=1;
             // Main Iteration
             do{
-                if(RANK==0) cout<< "Performing "<< iteration++ <<" Iteration.";
+                // if(RANK==0) cout<< "Performing "<< iteration++ <<" Iteration.";
                 norm = calculator.performIteration(pageRanks,mapreduce);
-                if(RANK==0) cout<<" Current norm is "<< norm << endl;
+                // if(RANK==0) cout<<" Current norm is "<< norm << endl;
             } while(norm>Constant::TOL);
             return pageRanks;
         }
