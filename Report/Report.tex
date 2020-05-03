@@ -165,8 +165,14 @@
     \section{Design Philosophy, Objectives and Workflow}
     
     We approached this assignment with the following objectives and design philosophy:
-    % \begin{enumerate}
-    % \end{enumerate}
+    \begin{enumerate}
+        \item Implement mapreduce-pagerank using mapreduce C++ library
+        \item Implement our own mapreduce library with MPI by implementing  the functions needed for pagerank. 
+        \item  Implement pagerank using existing mapreduce MPI library.
+    In each of the above cases compare correctness of the pagrank output against the given java/python outputs.
+        \item Plot graphs with x-axis as benchmark ID, and y-axis as pagerank runtime (three graphs for the three executables).
+        \item Compare pagerank latencies across the three implementations and comment on the observations
+    \end{enumerate}
     The time measurements were done by using the \cpp{std::chrono::high_resolution_clock} 
     % and code was compiled with -O3 Optimization flag.
     These objectives were achieved to a large extent by continuous evolution of the code-base.
@@ -174,21 +180,109 @@
     
     Optimize Serial $\longrightarrow$ Parallelize algorithm $\longrightarrow$ Refactor Code $\longrightarrow$ Optimize Serial $\longrightarrow$ ... \\
     
-    Our code and scripts can be found in the repository at    \url{https://github.com/jainvasu631/MPI-MapReduce-PageRank}
+    Our code and scripts can be found in the repository at:
+    {\newline}
+    \url{https://github.com/jainvasu631/MPI-MapReduce-PageRank}
+    % \clearpage
+    
+    %=========================================================
+    %   Mapreduce Algorithm
+    %=========================================================
+    \section{The PageRank Algorithm}
+    We will assign to each web page P a measure of its importance I(P), called the page's PageRank.
+
+    Suppose that page Pj has lj links. If one of those links is to page Pi, then Pj will pass on 1/lj of its importance to
+    Pi. The importance ranking of Pi is then the sum of all the contributions made by pages linking to it. That is, if we denote the set of pages linking to Pi by Bi, then I({P_i})=\sum{\frac{I(P_j)}{l_j}},   {P_j\in B_i}
+    % \newline 
+    
+    \begin{itemize}
+        \item \textbf{Hyperlink Matrix} \newline
+        H := [Hij] = if Pj in Bi then 1/lj else 0 \newline
+        H := [Hij] = if Pj to Pi is Edge then 1/lj else 0 \newline
+        H is a \textbf{stochastic matrix}. The sum of all entries in a column is 1/0
+        
+        \item \textbf{Importance Vector} \newline
+        I := [I(Pi)] whose components are the PageRanks or the importance rankings of all the pages.\newline
+        I = HI i.e. I is an eigenvector of H with eigenvalue 1. This is the \textbf{stationary vector} of H.
+        
+        \item \textbf{Computing I} \newline
+        H can be a very very large matrix of the order of $10^10$. However most entries of H are zero.Therefore its a sparse matrix. \newline
+        I(k+1) = HI(k). Sequence of I(k) converges to I.
+
+    \end{itemize}
+    
+    \subsection{Problems with Convergence of I}
+    \begin{enumerate}
+        \item Dangling nodes which have no out links. Then H is no more perfectly stochastic. In this case these nodes will act as importance sinks.
+        \item Circular Reference Problem. S isn't Primitive anymore and the I(k) never converges.
+        \item Importance Sink. S is reducible, i.e. when we have a sub graph of fully connected nodes with no edge coming out of it.
+    \end{enumerate}
+    
+    \subsection{Solving the Problem}
+    \subsubsection{Google Matrix}
+    Replace all 0 columns in matrix H with 1/n to create S. Thus we don't have dangling nodes anymore. \newline
+    So, S = H + A where A := [Aij] = {if Hi==0 then 1/n else 0} \newline
+    \newline
+    Choose a parameter $\alpha$ between 0 and 1. Now, with probability $\alpha$ , the random surfer is guided by S and with probability $ 1-\alpha $ , he chooses the next page at random. This solves the problem of importance sinks and circular references.  \newline
+    So, G := $\alpha$ x S + $(1-\alpha)$ x 1/n x 1.
+    \subsubsection{Choosing alpha}
+    The parameter $\alpha$ has an important role. When $\alpha$ is 1 we get G:=S and when $\alpha$ is 0 G:=$(1-\alpha)$/n x 1. The rate of convergence of I depends on $\alpha$. Therefore as a compromise we use $\alpha$ = 0.85.
+    
+    \subsection{Optimizing the Calculation}
+    \subsubsection{Simplifying Formula}
+    I(k+1) = $\alpha$ x H x I(k) + $\alpha$ x A x I(k) + $(1-\alpha)$/n x 1 x I(k). \newline
+    This can be further simplified. A = J/n where J = [Ji] = {1 if Corresponding Column is 0 else 0}.\newline
+    Let  $\beta$ := (1/$\alpha$-1) and so M:= (J + $\beta$ x 1)/n.  \newline
+    Then I(k+1) = $\alpha$ x (H x I(k) + (J + (1/$\alpha$-1) x 1)/n x I(k)) which simplifies to \newline
+    I(k+1) = $\alpha$ (H I(k) + M I(k)).
+    \subsubsection{Calculating M x I(k)}
+    As all rows of M are identical, we can write M = 1 x N and M x I(k) = 1 x N x I(k).  \newline
+    factor:= N x I(k) = (1 + beta if Corresponding column is 0 else beta) x I(k)/n
+    \newline Now the expression simplifies to 
+    I(k+1) = $\alpha$ x H x I(k) + 1 x factor.  
     \clearpage
     
     %=========================================================
     %   Data Structure and Algorithm Optimization: 
     %=========================================================
-    \section{Data Structures and Serial Optimization }
-    \subsection{Data Structure}
-    % Both Matrices A and B are stored in the form of \cpp{FlatMatrix} which is a Matrix Wrapper \cpp{class} on \cpp{std::vector<double>}. The \cpp{FlatMatrix} class allows indexation similar to \cpp{std::vector<std::vector<double>>} i.e \cpp{a(i,j)} instead of \cpp{a[i][j]}. The FlatMatrix gives us advantage of STL while also guaranteeing that all elements of the matrix our consecutively placed in memory. This is a necessity as \cpp{MPI_Scatter} and \cpp{MPI_Gather} operations require consecutive memory layout. \\
-    % Matrix A is stored in Row Major order while Matrix B is stored in Column Major Order. Since Matrix A and Matrix B are accessed Row wise and Column wise during Matrix Multiplication, this provides additional locality and hence is an Optimization. Hence During Matrix Multiplication we do \cpp{a[i][k]*b[j][k]} instead of \cpp{a[i][k]*b[k][j]}. \\
+    \section{Data Structures}
+    \subsection{Graphs}
+    Input files contain two space separated numbers (denoting 2 web-pages) in each line indicating a link from the first webpage to the second. We read and convert the input into a graph with # of nodes (N) = maximum node index in the file.
     
+    Class Graph contains - 
+    \begin{itemize}
+        \item VertexList (type vector(int))- Protected variable denoting a list of vertices (type int).
+        \item EdgeList (type vector(pair(int,int))) - Protected variable denoting list of edges (type pair(int,int)).
+        \item toList (type vector(VertexList)) - Public variable denoting a list such that toList[i] is the VertexList of all the vertices which have an edge from "i".
+        \item fromList (type vector(VertexList)) - Public variable denoting a list such that fromList[i] is the VertexList of all the vertices which have an edge to "i".
+    \end{itemize}{}
+    
+    \subsection{Columns}
+    Columns is a vector of Values where Values has type - "double". Two important uses of Columns are -
+    \begin{itemize}
+        \item PageRank - This data structure simply contains the calculated page rank for each web-page.
+        \item Hyperlink - ith element of Hyperlink contains the importance ith node will give to the nodes it has an outgoing edge to.
+    \end{itemize}
     \subsection{Initialization}
-    % Both Matrices A and B can be independently initialised. However as both matrices have no data dependency between them. They are initialized together in a for loop to save overhead time.
+    After the graph is generated from the input file:
+    \begin{lstlisting}[caption={ Calculating Hyperlink}] 
+        static Column calculateHyperLinkColumn(const Graph::ToList& toList){
+            const Graph::Size N = toList.size();
+            Column hyperlink(N);
+            for(Graph::Size i=0;i<N;i++)
+                hyperlink[i] = (toList[i].size()>0)? 1.0/toList[i].size() : 0;
+            return hyperlink;
+        }
+    \end{lstlisting}
+    PageRank is initialised as a vector of doubles of size N with all values = 1.0/N
+    \begin{lstlisting}[caption={ Initialising PageRank}] 
+        static inline Column getInitPageRank(const Graph::Size N) {
+            return Column(N,1.0/N);
+        }
+    \end{lstlisting}
+ 
     
-    \subsubsection{Time Complexity Analysis}
+    % \subsubsection{Time Complexity Analysis}
     % The 2 parts have serial time complexity:
     % \begin{enumerate}
     %     \item Initialization - $O(N^2)$ (Quadratic due to Initialization of A and B by random numbers)
@@ -198,57 +292,60 @@
     
     \clearpage
     %=========================================================
-    %   Parallelization of Algorithm: 
+    %   Mapreduce C++ Library
     %=========================================================
-    \section{MPI - Message Parsing Interface}
-    Message Passing Interface (MPI) is a communication protocol for parallel programming. MPI is specifically used to allow applications to run in parallel across a number of separate computers connected by a network.
-    Message passing programs generally run the same code on multiple processors, which then communicate with one another via library calls which fall into a few general categories:
-        \begin{itemize}
-            \item Calls to initialize, manage, and terminate communications
-            \item Calls to communicate between two individual processes (point-to-point)
-            \item Calls to communicate among a group of processes (collective)
-        \end{itemize}
-    \subsection{Types of Communications}
-    \subsubsection{Point-to-point Communication}
-        \begin{itemize}
-            \item {Blocking P2P Communication} - A blocking call suspends execution of the process until the message buffer being sent/received is safe to use \cpp{(MPI_Send, MPI_Recv)}
-            \item {Non-blocking P2P Communication} - A non-blocking call just initiates communication \cpp{(MPI_Isend, MPI_Irecv)}; the status of data transfer and the success of the communication must be verified later by the programmer (\cpp{MPI_Wait} or \cpp{MPI_Test}).  
-        \end{itemize}
-    \subsubsection{Collective Communication}
-    Collective calls involve ALL processes within a communicator. There are 3 basic types of collective communications - 
-        \begin{itemize}
-            \item Synchronization \cpp{(MPI_Barrier)}
-            \item Data movement \cpp{(MPI_Bcast/Scatter/Gather/Allgather/Alltoall)} 
-            \item Collective computation (\cpp{MPI_Reduce/Allreduce/Scan}) 
-        \end{itemize}
+    \section{Mapreduce C++ Library}
+    The MapReduce C++ Library implements a single-machine platform for programming using the the Google MapReduce idiom. Users specify a map function that processes a key/value pair to generate a set of intermediate key/value pairs, and a reduce function that merges all intermediate values associated with the same intermediate key. 
+    
+    The developer is required to write two classes:
+    \begin{itemize}
+        \item MapTask - It implements a mapping function to process key/value pairs generate a set of intermediate key/value pairs 
+        \item ReduceTask - It implements a reduce function to merges all intermediate values associated with the same intermediate key. 
+    \end{itemize}
+    There are three optional template parameters that can be used to modify the default implementation:
+    \begin{itemize}
+        \item Datasource - It implements a mechanism to feed data to the Map Tasks - on request of the MapReduce library
+        \item Combine - It can be used to partially consolidate results of the Map Task before they are passed to the Reduce Tasks
+        \item IntermediateStore - It handles storage, merging and sorting of intermediate results between the Map and Reduce phases
+    \end{itemize}{}
+    
+    \subsection{Our Implementation}
+    We have used the concept of Mapreduce while solving the pagerank finding problem at two steps. First is in finding the factor Column (as defined in the pagerank algorithm section) and second is in finding the pagerank Column.
+    \subsubsection{Calculating Factor using Mapreduce}
+    \begin{lstlisting}[caption={ MapTask for Factor}] 
+        class MapFactor : public mapreduce::map_task<Graph::Vertex, Value>{
+            // Identity Map
+            public: template<typename Runtime>
+                void operator()(Runtime& runtime, const key_type& key, const value_type& value) const{runtime.emit_intermediate(COMMON,value);}
+            private: static constexpr Graph::Size COMMON = 0;              
+        };
+    \end{lstlisting}
+    
+    \begin{lstlisting} [caption = {ReduceTask for Factor}]
+        class ReduceFactor : public mapreduce::reduce_task<Graph::Size, Value>{
+            // Calculate Factor by Accumulation
+            public: template<typename Runtime, typename Iterator>
+                void operator()(Runtime& runtime, const key_type& key, Iterator it, Iterator end) const{runtime.emit(key,std::accumulate(it,end,0.0));}
+        };
+    \end{lstlisting}
+    
+    We have defined a class named FactorData
+    \subsubsection{Calculating PageRank using Mapreduce}
+    
+    
+    \clearpage
+    %=========================================================
+    %   Self-implemented Mapreduce Library using MPI
+    %=========================================================
+    \section{Self-implemented Mapreduce Library using MPI}
+
     
     \clearpage
     
     %=========================================================
-    %   Parallelization of Algorithm: 
+    %   Mapreduce MPI Library
     %=========================================================
-    \section{Parallelization of Algorithm}
-    % Division of work among threads by MPI is done by assigning roughly equal number of rows of \cpp{FlatMatrix} to a thread. Also consecutive chunks of rows are usually assigned to same thread i.e. large chunk size of rows is given to each thread. This means if consecutive rows are close to each other in memory. they are being worked by the same thread avoiding false conflict misses. This also aids in cache locality for a particular process.
-    
-    \subsection{Embarrassingly Parallel For Loop}
-    
-    \subsubsection{Matrix Multiplication}
-    % We have parallelized the standard matrix multiplication algorithm where the Matrix B is $32 \times N$ is passed completely to all processes in the form of \cpp{FlatMatrix}. Matrix A is $32 \times N$ is passed as evenly distributed chunks i.e as SIZE-number of sub-matrices of dimensions $N/SIZE \times 32$ and sent to threads in the order of their RANK. The thread with RANK=0 is the root thread. So each thread calculates (N/SIZE) rows of the final output matrix 'C' of the overall multiplication. Since there is no data dependence in the calculation of the 'C' matrix within its own elements, they can be independently calculated by different processes and then combined together into a single \cpp{FlatMatrix} by one thread.
-     
-    %=========================================================
-    %   Checking Correctness 
-    %=========================================================
-    
-     \section{Checking Correctness}
-        % Correctness of the output of parallelised matrix multiplication is verified by calculating the absolute difference of corresponding elememts in the resultant matrices and ensuring they are each smaller than \cpp{Tolerance=1.0e-8}.\\
-        % If difference is bigger than tolerance for any element then we return "false"(Matrices are unequal) else we return "true" (Matrices are equal).
-    
-    \clearpage
-    
-    %=========================================================
-    %   Differences among different versions: 
-    %=========================================================
-    \section{Differences among the 3 Versions of Parallel Algorithm}
+    \section{Mapreduce MPI Library}
     
     \subsection{In terms of Principle}
     \clearpage
@@ -257,9 +354,9 @@
     \clearpage
     
     %=========================================================
-    %   Restriction on 'N': 
+    %   Performance Analysis 
     %=========================================================
-    % \section{Handling all values of 'N' in Parallel Algorithm}
+    \section{Performance Analysis}
     
     % For the Blocking and Non-Blocking Communication there is no restriction on the input matrix size dimension 'N' and the number of threads in the MPI\_Communication - 'SIZE'. 
     % \begin{itemize}
