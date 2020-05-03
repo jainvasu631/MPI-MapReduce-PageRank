@@ -3,6 +3,8 @@
 while IFS="" read -r p || [ -n "$p" ]
 do
 	./C++.o "Tests/$p.txt" >> "C++.txt"
-	mpirun -np 1 MPIBase.o "$p.txt" >> "MPI Base.txt"
-	mpirun -np 1 MPISelf.o "$p.txt" >> "MPI Self.txt"
+	echo "mpirun -np 1 MPIBase.o \"Tests/$p.txt\" >> \"MPI Base.txt\"" >> temp.sh
+	echo "mpirun -np 1 MPISelf.o \"Tests/$p.txt\" >> \"MPI Self.txt\"" >> temp.sh
 done < Tests/all-tests.txt
+./temp.sh
+rm -rf temp.sh
