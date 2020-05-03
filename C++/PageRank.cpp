@@ -26,9 +26,9 @@ class PageRank{
             unsigned int iteration=1;
             // Main Iteration
             do{
-                cout<< "Performing "<< iteration++ <<" Iteration.";
+                // cout<< "Performing "<< iteration++ <<" Iteration.";
                 norm=Calculator::performIteration(pageRanks,pageRanks_,pageRankData);
-                cout<<" Current norm is "<< norm << endl;
+                // cout<<" Current norm is "<< norm << endl;
                 pageRanks = pageRanks_;
             } while(norm>Constant::TOL);
             return pageRanks;
