@@ -12,6 +12,7 @@ Report/Report.*
 #Exclude All Output Files
 *.txt
 !Tests/*.txt
+!Report/*.txt
 
 #Exclude .vscode
 .vscode/*
