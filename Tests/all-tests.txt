@@ -1,4 +1,3 @@
-barabasi-10000
 barabasi-20000
 barabasi-30000
 barabasi-40000
