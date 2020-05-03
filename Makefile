@@ -1,6 +1,6 @@
 # Makefile 
 CXX = g++
-CXXFLAGS = -Ofast
+CXXFLAGS = -O3 -std=c++11
 
 PGSerial:
 	$(CXX) Serial/PageRank.cpp $(CXXFLAGS) -o Serial.o
@@ -17,8 +17,8 @@ MPICXX = mpic++
 MPIDIR = MPI\ Base/mrmpi-7Apr14/src
 USRLIB = -I $(MPIDIR) $(MPIDIR)/libmrmpi_mpicc.a
 PGMPIBase:
-	$(MPICC) MPI\ Base/PageRank.cpp $(USRLIB) $(CXXFLAGS) -o MPIBase.o
+	$(MPICXX) MPI\ Base/PageRank.cpp $(USRLIB) $(CXXFLAGS) -o MPIBase.o
 
 # MPI Base -- Not yet Implemented
 PGMPISelf:
-	$(CXX) MPI\ Self/PageRank.cpp $(CXXFLAGS) -o MPISelf.o
+	$(MPICXX) MPI\ Self/PageRank.cpp $(CXXFLAGS) -o MPISelf.o
