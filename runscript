@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-# ./C++.o Tests/barabasi-10000.txt >>output.txt
-
-for i in Tests/*00.txt 
-do 
-	./C++.o $i >>output.txt
-	
-done

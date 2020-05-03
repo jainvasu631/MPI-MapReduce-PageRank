@@ -1,0 +1,8 @@
+#!/bin/bash
+# ./C++.o Tests/barabasi-10000.txt >>output.txt
+while IFS="" read -r p || [ -n "$p" ]
+do
+	./C++.o "$p.txt" >> "C++.txt"
+	mpirun -np 1 "$p.txt" >> "MPI Base.txt"
+	mpirun -np 1 "$p.txt" >> "MPI Self.txt"
+done < ../Tests/all-tests.txt
