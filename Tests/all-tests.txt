@@ -47,4 +47,3 @@ thomassen
 tutte
 uniquely3colorable
 walther
-zachary
