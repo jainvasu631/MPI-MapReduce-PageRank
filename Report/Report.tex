@@ -329,9 +329,43 @@
         };
     \end{lstlisting}
     
-    We have defined a class named FactorData
+    We have defined a class named FactorData used by "Calculation" - an instance of mapreduce::job to compute factor column using mapreduce template of C++.
+    
+    \begin{lstlisting} [caption = {Mapreduce Job for Factor}]
+        using Calculation = mapreduce::job<MapFactor,ReduceFactor, mapreduce::null_combiner,FactorData>;
+    \end{lstlisting}
+    
+    
     \subsubsection{Calculating PageRank using Mapreduce}
     
+    \begin{lstlisting}[caption={ MapTask for PageRank}] 
+        class MapPageRank : public mapreduce::map_task<Graph::Vertex, VertexInfo >{
+            // Function to generate Intermediate Values
+            // Will map for each to Vertex a probability contribution that is summed by reduce      
+            public: template<typename Runtime>
+                void operator()(Runtime& runtime, const key_type& key, const value_type& value) const{
+                    runtime.emit_intermediate(key, ZERO); // Emitting Zero Insures that each Node has atleast Tuple
+                    for (const Graph::Vertex& to : value.second) 
+                        runtime.emit_intermediate(to, value.first);
+                }
+            private: static constexpr Value ZERO = 0.0;              
+        
+        };
+    \end{lstlisting}
+    
+    \begin{lstlisting} [caption = {ReduceTask for PageRank}]
+        class ReducePageRank : public mapreduce::reduce_task<Graph::Vertex, Value>{
+            // Function to add all probabilities in Hyperlink Matrix        
+            public: template<typename Runtime, typename Iterator>
+                void operator()(Runtime& runtime, const key_type& key, Iterator it, Iterator end) const{runtime.emit(key,std::accumulate(it,end,0.0));}
+        };
+    \end{lstlisting}
+    
+    We have defined a class named PageRankData used by "Iteration" - an instance of mapreduce::job to compute pageRank column using mapreduce template of C++.
+    
+    \begin{lstlisting} [caption = {Mapreduce Job for PageRank}]
+        using Iteration = mapreduce::job<MapPageRank, ReducePageRank, mapreduce::null_combiner,PageRankData>;
+    \end{lstlisting}
     
     \clearpage
     %=========================================================
