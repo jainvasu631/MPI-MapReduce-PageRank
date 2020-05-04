@@ -372,7 +372,7 @@
     %   Self-implemented Mapreduce Library using MPI
     %=========================================================
     \section{Self-implemented Mapreduce Library using MPI}
-
+    
     
     \clearpage
     
@@ -433,28 +433,36 @@
     The concept of approach is completely similar to the one used in the first part with MapReduce C++ Library. We calculate the factor column and then the pagerank column using MapReduce API of MPI. 
     
     \subsubsection{Calculating Factor using Mapreduce of MPI}
-    \begin{lstlisting}[caption={ "mymap" function for Factor}] 
-        static void MapFactor(Graph::Vertex key, KeyValue* keyvalue, void* calculator){
-            Value value = castTo(Calculator,calculator)->getFactorValue(key);
-            auto Common = COMMON;
-            keyvalue->add(getCharAddress(Common),VERTEX_SIZE,getCharAddress(value),VALUE_SIZE);
-        }
-    \end{lstlisting}
+    In \textbf{"MPI\ Base/Calculator.cpp"} We have defined function - 
+    \begin{itemize}
+        \item MapFactor - \textit{static void MapFactor(Graph::Vertex key, KeyValue* keyvalue, void*
+        calculator)} as "mymap" function
+        \item ReduceFactor - \textit{static void ReduceFactor(char* key, int keybytes, char* multivalue, int nvalues, int* valuebytes, KeyValue* keyvalue, void* calculator)} as "myreduce" function.
+        \item GatherFactor - \textit{static void GatherFactor(uint64\_t index, char* key, int keybytes, char* value, int valuebytes, KeyValue* keyvalue, void* calculator)} as "mygather" function.
+    \end{itemize}
     
-    \begin{lstlisting} [caption = { "myreduce" function for Factor}]
-        static void ReduceFactor(char* key, int keybytes, char* multivalue, int nvalues, int* valuebytes, KeyValue* keyvalue, void* calculator){ 
-            // cout << ((nvalues==0)? "Trouble" : "Phew") <<endl;
-            Value* values = castTo(Value,multivalue);    
-            Value factor = accumulate(values,values+nvalues,0.0)/nvalues;
-            keyvalue->add(key, VERTEX_SIZE,getCharAddress(factor),VALUE_SIZE);
-        }
-    \end{lstlisting}
+    % \begin{lstlisting}[caption={ "mymap" function for Factor}] 
+    %     static void MapFactor(Graph::Vertex key, KeyValue* keyvalue, void* calculator){
+    %         Value value = castTo(Calculator,calculator)->getFactorValue(key);
+    %         auto Common = COMMON;
+    %         keyvalue->add(getCharAddress(Common),VERTEX_SIZE,getCharAddress(value),VALUE_SIZE);
+    %     }
+    % \end{lstlisting}
+    
+    % \begin{lstlisting} [caption = { "myreduce" function for Factor}]
+    %     static void ReduceFactor(char* key, int keybytes, char* multivalue, int nvalues, int* valuebytes, KeyValue* keyvalue, void* calculator){ 
+    %         // cout << ((nvalues==0)? "Trouble" : "Phew") <<endl;
+    %         Value* values = castTo(Value,multivalue);    
+    %         Value factor = accumulate(values,values+nvalues,0.0)/nvalues;
+    %         keyvalue->add(key, VERTEX_SIZE,getCharAddress(factor),VALUE_SIZE);
+    %     }
+    % \end{lstlisting}
 
-    \begin{lstlisting} [caption = { "mygather" function for Factor}]
-        static void GatherFactor(uint64_t index, char* key, int keybytes, char* value, int valuebytes, KeyValue* keyvalue, void* calculator)
-        { castTo(Calculator,calculator)->factor = dereferenceTo(Value,value); } // Replace Factor
-        }
-    \end{lstlisting}
+    % \begin{lstlisting} [caption = { "mygather" function for Factor}]
+    %     static void GatherFactor(uint64_t index, char* key, int keybytes, char* value, int valuebytes, KeyValue* keyvalue, void* calculator)
+    %     { castTo(Calculator,calculator)->factor = dereferenceTo(Value,value); } // Replace Factor
+    %     }
+    % \end{lstlisting}
     
     \begin{lstlisting} [caption = {Calculating Factor}]
         auto kvPairs = mapreduce.map(N,MapFactor,void_this);// Map Part
@@ -465,7 +473,23 @@
         kvPairs = mapreduce.map(&mapreduce,GatherFactor,void_this);// Gather Part
     \end{lstlisting}
     
-    Similarly to Calculate Pagerank
+    \subsubsection{Calculating Pagerank using Mapreduce of MPI}
+    In \textbf{"MPI\ Base/Calculator.cpp"} We have defined function - 
+    \begin{itemize}
+        \item MapPageRank - \textit{static void MapPageRank(Graph::Vertex key, KeyValue* keyvalue, void* calculator)} as "mymap" function
+        \item ReducePageRank - \textit{static void ReducePageRank(char* key, int keybytes, char* multivalue, int nvalues, int* valuebytes, KeyValue* keyvalue, void* calculator)} as "myreduce" function.
+        \item GatherPageRank - \textit{static void GatherPageRank(uint64\_t index,char* key, int keybytes, char* value, int valuebytes, KeyValue* keyvalue, void* calculator)} as "mygather" function.
+    \end{itemize}
+    
+    \begin{lstlisting} [caption = {Calculating PageRank}]
+        auto kvPairs = mapreduce.map(N,MapPageRank,void_this);// Map Part
+        mapreduce.collate(NULL);
+        auto kvmPairs = mapreduce.reduce(ReducePageRank,void_this);// Reduce Part
+        mapreduce.gather(HOME);
+        mapreduce.sort_keys(INT_SORT);
+        mapreduce.broadcast(ROOT);
+        kvPairs = mapreduce.map(&mapreduce,GatherPageRank,void_this);// Gather Part
+    \end{lstlisting}
     
     \clearpage
     
@@ -570,7 +594,20 @@
     
     \clearpage
     
-    \
+    \subsubsection{Comparative Analysis of Different Implementations}
+    \begin{enumerate}
+        \item Benchmark - Barabasi
+        \begin{center}
+            \includegraphics[scale = 0.55]{Comparison between three implementations on the running time of Benchmark - Barabasi_N .png}
+        \end{center}
+        
+        \item Benchmark - Erdos
+        \begin{center}
+            \includegraphics[scale = 0.55]{Comparison between three implementations on the running time of Benchmark - Erdos_N .png}
+        \end{center}
+    \end{enumerate}
+    
+    \clearpage
     
     % \begin{enumerate}
     %     \item We also observe that speedup is around 1.2-2.1X when going from 1 Thread to 2 Threads and 3.1-3.3X when going to 4 Threads in Case of Blocking and Collective Matrix Multiplication. 
