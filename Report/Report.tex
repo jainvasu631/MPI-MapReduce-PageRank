@@ -382,9 +382,91 @@
     \section{Mapreduce MPI Library}
     
     \subsection{In terms of Principle}
+     In C++, your program includes two library header files and uses the MapReduce namespace: \newline
+     \newline
+        \textbf{#include "mapreduce.h" \newline
+        #include "keyvalue.h"   \newline
+        using namespace MAPREDUCE\_NS   \newline}
+        
+    Arguments to the library's \textbf{map()} and \textbf{reduce()} methods include function pointers to serial "mymap" and "myreduce" functions in your code (named anything you wish), which will be "called back to" from the library as it performs the parallel map and reduce operations. \newline \newline
+    A typical simple MapReduce program involves these steps: 
+    
+    \begin{lstlisting} [caption = {MapReduce Program Layout}]
+        MapReduce *mr = new MapReduce(MPI_COMM_WORLD); // instantiate an MR object
+        mr->map(nfiles,&mymap); // parallel map
+        mr->collate() // collate keys
+        mr->reduce(&myreduce); // parallel reduce
+        delete mr; // delete the MR object
+    \end{lstlisting}
+    
+    All the library methods operate on two basic data structures stored within the MapReduce object -
+    \begin{itemize}
+        \item
+         \textbf{KeyValue object (KV)} - A KV is a collection of key/value pairs. The same key may appear many times in the collection, associated with values which may or may not be the same. 
+        \item
+        \textbf{KeyMultiValue object (KMV)} - A KMV is also a collection of key/value pairs. But each key in the KMV is unique, meaning it appears exactly once.The value associated with a KMV key is a concatenated list (a multi-value) of all the values associated with the same key in the original KV.
+    \end{itemize}
+     
+     Various library methods operated on KV and KMV objects in our implementation are - 
+     \begin{itemize}
+         \item \textbf{MapReduce add() method} - \textit{uint64\_t MapReduce::add(MapReduce *mr2)} \newline
+         Adds the KeyValue pairs contained in a second MapReduce object mr2, to the KeyValue object of the first MapReduce object, which is created if one does not exist. 
+         
+         \item \textbf{MapReduce broadcast() method} - \textit{uint64\_t MapReduce::broadcast(int root) } \newline
+         Deletes the key/value pairs of a KeyValue object on all processors except root, and then broadcasts the key/value pairs owned by the root processor to all the other processors.
+         
+         \item \textbf{MapReduce collate() method} - \textit{uint64\_t MapReduce::collate(int (*myhash)(char *, int))  } \newline
+         Aggregates a KeyValue object across processors and converts it into a KeyMultiValue object. 
+         
+         \item \textbf{MapReduce gather() method} - \textit{uint64\_t MapReduce::gather(int nprocs)  } \newline
+         Collects the key/value pairs of a KeyValue object spread across all processors to form a new KeyValue object on a subset (nprocs) of processors. 
+         
+         \item \textbf{MapReduce sort\_keys() method} - \textit{uint64\_t MapReduce::sort\_keys(int flag)   } \newline
+         Sorts a KeyValue object by its keys to produce a new KeyValue object. 
+         
+     \end{itemize}
+    
     \clearpage
     
-    \subsection{In terms of Implementation}    
+    \subsection{In terms of Implementation}  
+    
+    The concept of approach is completely similar to the one used in the first part with MapReduce C++ Library. We calculate the factor column and then the pagerank column using MapReduce API of MPI. 
+    
+    \subsubsection{Calculating Factor using Mapreduce of MPI}
+    \begin{lstlisting}[caption={ "mymap" function for Factor}] 
+        static void MapFactor(Graph::Vertex key, KeyValue* keyvalue, void* calculator){
+            Value value = castTo(Calculator,calculator)->getFactorValue(key);
+            auto Common = COMMON;
+            keyvalue->add(getCharAddress(Common),VERTEX_SIZE,getCharAddress(value),VALUE_SIZE);
+        }
+    \end{lstlisting}
+    
+    \begin{lstlisting} [caption = { "myreduce" function for Factor}]
+        static void ReduceFactor(char* key, int keybytes, char* multivalue, int nvalues, int* valuebytes, KeyValue* keyvalue, void* calculator){ 
+            // cout << ((nvalues==0)? "Trouble" : "Phew") <<endl;
+            Value* values = castTo(Value,multivalue);    
+            Value factor = accumulate(values,values+nvalues,0.0)/nvalues;
+            keyvalue->add(key, VERTEX_SIZE,getCharAddress(factor),VALUE_SIZE);
+        }
+    \end{lstlisting}
+
+    \begin{lstlisting} [caption = { "mygather" function for Factor}]
+        static void GatherFactor(uint64_t index, char* key, int keybytes, char* value, int valuebytes, KeyValue* keyvalue, void* calculator)
+        { castTo(Calculator,calculator)->factor = dereferenceTo(Value,value); } // Replace Factor
+        }
+    \end{lstlisting}
+    
+    \begin{lstlisting} [caption = {Calculating Factor}]
+        auto kvPairs = mapreduce.map(N,MapFactor,void_this);// Map Part
+        mapreduce.collate(NULL);
+        auto kvmPairs = mapreduce.reduce(ReduceFactor,void_this);// Reduce Part
+        mapreduce.gather(HOME);
+        mapreduce.broadcast(ROOT);
+        kvPairs = mapreduce.map(&mapreduce,GatherFactor,void_this);// Gather Part
+    \end{lstlisting}
+    
+    Similarly to Calculate Pagerank
+    
     \clearpage
     
     %=========================================================
@@ -407,19 +489,9 @@
     %   Explanation of the findings and trends of graph in accordance with the theoretical time complexity: 
     %=========================================================
     \section{Observations and Conclusions}
-    \subsection{Execution Time, Speedup and Efficiency}
-    % The execution time was measured for \cpp{NUM_THREADS=1,2,3,4,8,16} and \cpp{N=1000,2000,4000,8000}. This data is given in Figure 1.
-    
-    $$\text{Speed Up}=\frac{\text{Serial Execution Time }}{\text{Parallel Execution Time }}$$
-    $$\text{Efficiency}=\frac{\text{SpeedUp}}{\text{Number of Threads}}$$
-    
-    % \subsection{Table}
-    % \begin{figure}[H]
-    %     \centering
-    %     \includegraphics[width=\linewidth]{Images/MPI_Master.png}
-    %     \caption{Execution, Speedup and Efficiency Data for Matrix Multiplication}
-    %     \label{tab:1}
-    % \end{figure}
+    \subsection{Execution Time of Different Implementations}
+    \newline \newline
+   \includegraphics [scale=0.65] {Table2_Mapreduce.png}
     
     \subsection{Time Complexity Analysis}
     
@@ -445,7 +517,61 @@
     %     \label{fig:0}
     % \end{figure}
     
-    \subsection{Observations and Explanations of MPI Graph Trends}
+    \clearpage
+    
+    \subsection{Observations and Explanations of Graph Trends}
+    
+    \subsubsection{MapReduce C++ Library}
+    \begin{enumerate}
+        \item Benchmark - Barabasi
+        \begin{center}
+            \includegraphics[scale = 0.6]{C++ - Barabasi Mapreduce PageRank Time Vs Number of Nodes.png}
+        \end{center}
+            
+        
+        \item Benchmark - Erdos
+        \begin{center}
+            \includegraphics[scale = 0.6]{C++ - Erdos Mapreduce PageRank Time Vs Number of Nodes.png}
+        \end{center}
+    \end{enumerate}
+    
+    \clearpage
+    
+    \subsubsection{MapReduce Self with MPI}
+    \begin{enumerate}
+        \item Benchmark - Barabasi
+        \begin{center}
+            \includegraphics[scale = 0.6]{MPI Self - Barabasi Mapreduce PageRank Time Vs Number of Nodes.png}
+        \end{center}
+            
+        
+        \item Benchmark - Erdos
+        \begin{center}
+            \includegraphics[scale = 0.6]{MPI Self - Erdos Mapreduce PageRank Time Vs Number of Nodes.png}
+        \end{center}
+    \end{enumerate}
+    
+    \clearpage
+    
+    \subsubsection{MapReduce with MPI Library}
+    
+    \begin{enumerate}
+        \item Benchmark - Barabasi
+        \begin{center}
+            \includegraphics[scale = 0.6]{MPI Base - Barabasi Mapreduce PageRank Time Vs Number of Nodes.png}
+        \end{center}
+            
+        
+        \item Benchmark - Erdos
+        \begin{center}
+            \includegraphics[scale = 0.6]{MPI Base - Erdos Mapreduce PageRank Time Vs Number of Nodes.png}
+        \end{center}
+    \end{enumerate}
+    
+    \clearpage
+    
+    \
+    
     % \begin{enumerate}
     %     \item We also observe that speedup is around 1.2-2.1X when going from 1 Thread to 2 Threads and 3.1-3.3X when going to 4 Threads in Case of Blocking and Collective Matrix Multiplication. 
     %     \item However beyond 4 Threads the speedup doesn't increase further and efficiency nose dives. 
