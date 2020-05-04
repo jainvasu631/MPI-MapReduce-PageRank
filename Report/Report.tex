@@ -117,7 +117,7 @@
 %   NAME AND CLASS SECTION
 %------------------------------------------------------------------------------------
 
-\newcommand{\hmwkTitle}{MapReduce Implementation of Google's PageRank Algorithm} % Assignment title
+\newcommand{\hmwkTitle}{MapReduce Using Google's PageRank Algorithm} % Assignment title
 \newcommand{\hmwkSubtitle}{using MPI} % Assignment Subtitle
 \newcommand{\hmwkClass}{COL380} % Course/class
 \newcommand{\hmwkClassTitle}{Introduction to Parallel and Distributed Computing} % Course/class title
@@ -369,14 +369,6 @@
     
     \clearpage
     %=========================================================
-    %   Self-implemented Mapreduce Library using MPI
-    %=========================================================
-    \section{Self-implemented Mapreduce Library using MPI}
-    
-    
-    % \clearpage
-    
-    %=========================================================
     %   Mapreduce MPI Library
     %=========================================================
     \section{Mapreduce MPI Library}
@@ -493,10 +485,53 @@
     
     \clearpage
     
+     %=========================================================
+    %   Self-implemented Mapreduce Library using MPI
+    %=========================================================
+    \section{Self-implemented Mapreduce Library using MPI}
+    Here we have implemented the methods of the MPI Library for MapReduce like "map", "reduce" in the template form similar to C++ MapReduce Library. \\
+    
+     \begin{lstlisting} [caption = {MapReduce Template}]
+        template<typename MapKey, typename MapValue, typename ReduceKey, typename ReduceValue, typename ResultKey, typename ResultValue>
+    \end{lstlisting}
+    
+     \begin{lstlisting} [caption = {Job Template}]
+       template <typename MapTask, typename ReduceTask, typename Generator, typename Combiner, typename Distributor, typename Result>
+    \end{lstlisting}
+    
+    \textbf{General Execution Flow:}
+    \begin{center}
+      The processPipe (in Job.hpp) runs the generator to produce (key, value) pairs. It then pipes the output to MapTask to initialise it with generator's output known as  MapTuple\\ 
+        &\Downarrow \\
+        The MapTask operator does - (k1,v1)-\textgreater list(k2,v2) where (k2,v2) are created as pairs and added to results, defined as  CombinerTuple \\
+        &\Downarrow \\
+        Now a combiner combines the output from the MapTask's of each processor into ReduceTuple\\
+        &\Downarrow \\
+        A distributor equally distributes the ReduceTuples to each processor for ReduceTask \\
+        &\Downarrow \\
+        The ReduceTask does - (k2,list(v2))-\textgreater list(k3,v3) where (k3,v3) are created as pairs and added to results, giving ResultTuples 
+    \end{center}
+    
+    We have also defined an OutputTask that combines output from the ReduceTask of different processors and returns the final output. It also does any additional processing of the output before returning. In our implementation it simply divides the produced output by "N" - Number of nodes in the input graph, before returning. \\
+ 
+    After implementing the library methods we can define "mymap" and "myreduce" functions which are implemented similar to part-a and part-b and define data structures accordingly. We also define generator functions for each job. 
+    
+    \begin{lstlisting} [caption = {MapReduce class instances for Factor and PageRank Calculation}]
+       using FactorJob = MapReduce<Graph::Vertex, Value, Graph::Size, Value, Graph::Size, Value>;
+        using PageRankJob = MapReduce<Graph::Vertex, VertexInfo, Graph::Vertex, Value, Graph::Vertex, Value>;
+    \end{lstlisting}
+    
+     \begin{lstlisting} [caption = {Job class instances for Factor and PageRank Calculation}]
+       using Calculation = Job<MapFactor, ReduceFactor, FactorData, FactorJob::Combiner, FactorJob::Distributor, OutputFactor>;
+        using Iteration = Job<MapPageRank, ReducePageRank, PageRankData, PageRankJob::Combiner, PageRankJob::Distributor, OutputPageRank>;
+    \end{lstlisting}
+    
+    \clearpage
+    
     %=========================================================
     %   Performance Analysis 
     %=========================================================
-    \section{Performance Analysis}
+    % \section{Performance Analysis}
     
     % For the Blocking and Non-Blocking Communication there is no restriction on the input matrix size dimension 'N' and the number of threads in the MPI\_Communication - 'SIZE'. 
     % \begin{itemize}
@@ -515,9 +550,9 @@
     \section{Observations and Conclusions}
     \subsection{Execution Time of Different Implementations}
     \newline \newline
-   \includegraphics [scale=0.65] {Table2_Mapreduce.png}
+   \includegraphics [scale=0.65] {Main_Table_Mapreduce.png}
     
-    \subsection{Time Complexity Analysis}
+    % \subsection{Time Complexity Analysis}
     
     % \begin{figure}[H]
     %     \centering
@@ -543,7 +578,7 @@
     
     \clearpage
     
-    \subsection{Observations and Explanations of Graph Trends}
+    \subsection{Graphs and Analysis}
     
     \subsubsection{MapReduce C++ Library}
     \begin{enumerate}
@@ -627,4 +662,15 @@
     \begin{center}
             \includegraphics[scale = 0.45]{pic1.png}
         \end{center}
+        
+    \subsection{Observations and Explanation of Graph Trends}    
+    
+    \begin{enumerate}
+        \item One common observation is that the execution time increases strictly with increasing size of network i.e increasing number of nodes.
+        \item We can see that the execution time of sparse networks (ex: Erdos) is much less than comparatively denser networks (ex: Barabasi) for all the three implementations.
+        \item From the previous point we can also conclude that our implementations take more time to calculate pagerank of networks with more edges.
+        \item From the comparative analysis graph we can see that the MapReduce Library with MPI (part c) has a considerable parallel communication overhead and thus it takes significant time to run on very small graphs compared to the other implementations (ex: bull).
+        \item In terms of running time the performance of first two implementations - "MapReduce C++ Library" and "Self MapReduce with MPI", is fairly similar and better than the third implemnetation - "MapReduce MPI Library". A possible reason could be the significant parallel communication overhead in the third.
+   \end{enumerate}
+    
 \end{document}
