@@ -50,7 +50,7 @@ class Utility{
             for(Graph::Size i=0; i<N;i++)
                 file << i << " = " << pageRanks[i] << endl;
             file << "s = " << accumulate(pageRanks.begin(),pageRanks.end(),0.0) << endl;
-            file.close()
+            file.close();
         }
 
         static Graph timedGraphCreation(const string filename){
