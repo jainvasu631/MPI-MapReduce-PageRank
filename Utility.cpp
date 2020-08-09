@@ -5,6 +5,7 @@
 #include<chrono>
 #include<iostream>
 #include<numeric>
+#include <fstream>
 
 // Class Includes
 #include "Graph.h"
@@ -41,11 +42,15 @@ class Utility{
         }
 
         // Print PageRanks in format
-        static void printPageRank(const Column& pageRanks){
+        static void printPageRank(const Column& pageRanks, const string filename){
+            ofstream file; 
+            file.open(filename); 
+            
             Graph::Size N = pageRanks.size();
             for(Graph::Size i=0; i<N;i++)
-                cout << i << " = " << pageRanks[i] << endl;
-            cout << "s = " << accumulate(pageRanks.begin(),pageRanks.end(),0.0) << endl;
+                file << i << " = " << pageRanks[i] << endl;
+            file << "s = " << accumulate(pageRanks.begin(),pageRanks.end(),0.0) << endl;
+            file.close()
         }
 
         static Graph timedGraphCreation(const string filename){

@@ -14,14 +14,14 @@ which has been made GCC 7.1 Compatible at <https://github.com/jainvasu631/mapred
 4. MPISelf (Uses our own MPI MapReduce C++ Library)
 
 **Run Algorithm** - 
-For Serial and C++ the `{implementation}.o` can be run directly as `./{implementation}.o Tests/{Testfile}`
-For MPIBase and MPISelf `mpirun` must be used - `mpirun -np {NUM_PROC} ./{implementation}.o Tests/{Testfile}` where `{NUM_PROC}` is the number of processors.
+For Serial and C++ the `{implementation}.o` can be run directly as `./{implementation}.o Tests/{Testfile} output-{Testfile}`
+For MPIBase and MPISelf `mpirun` must be used - `mpirun -np {NUM_PROC} ./{implementation}.o Tests/{Testfile} output-{Testfile}` where `{NUM_PROC}` is the number of processors.
 
 **Example**  
 `make PGC++`  
-`./C++.o Tests/erdos-20000.txt`
+`./C++.o Tests/erdos-20000.txt output-erdos-20000.txt`
 `make PGMPIBase`  
-`mpirun -np 4 ./MPIBase.o Tests/erdos-100000.txt`
+`mpirun -np 4 ./MPIBase.o Tests/erdos-100000.txt output-erdos-100000.txt`
 
 The PageRank Algorithm
 ---------------------

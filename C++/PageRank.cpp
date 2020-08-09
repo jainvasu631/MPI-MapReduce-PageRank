@@ -34,7 +34,7 @@ class PageRank{
             return pageRanks;
         }
         // Testing Function
-        static void test(const string filename){
+        static void test(const string filename,const string outfilename){
             Graph graph = Utility::timedGraphCreation(filename);
             // graph.print();
             auto N = graph.numVertices(); 
@@ -45,14 +45,15 @@ class PageRank{
             auto end_pageRank_algorithm = high_resolution_clock::now();
             auto pageRank_algorithm_duration = duration_cast<milliseconds>(end_pageRank_algorithm- start_pageRank_algorithm);
             cout << "PageRank Algorithm took " << pageRank_algorithm_duration.count()<<"ms"<<endl;
-            // Utility::printPageRank(pageRanks);
+            Utility::printPageRank(pageRanks, outfilename);
         }        
 };
 
 // The main method
 int main(int argc, char const *argv[]){   
     cout << argv[argc-1] << endl;
-    string filename = argv[argc-1];
-    PageRank::test(filename);
+    string infilename = argv[argc-2];
+    string outfilename = argv[argc-1];
+    PageRank::test(infilename, outfilename);
     return 0;
 }

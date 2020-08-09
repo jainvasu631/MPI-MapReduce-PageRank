@@ -37,7 +37,7 @@ class PageRank{
             return pageRanks;
         }
         // Testing Function
-        static void test(const string filename){
+        static void test(const string filename, const string outfilename){
             Graph graph = Utility::timedGraphCreation(filename);
             // graph.print();
             auto N = graph.numVertices(); 
@@ -48,7 +48,7 @@ class PageRank{
             auto end_pageRank_algorithm = high_resolution_clock::now();
             auto pageRank_algorithm_duration = duration_cast<milliseconds>(end_pageRank_algorithm- start_pageRank_algorithm);
             if(RANK==0) cout << "PageRank Algorithm took " << pageRank_algorithm_duration.count()<<"ms"<<endl;
-            // Utility::printPageRank(pageRanks);
+            Utility::printPageRank(pageRanks, outfilename);
         }        
 };
 
@@ -57,9 +57,10 @@ int main(int argc, char const *argv[]){
     MPI_Init(NULL,NULL);
     MPI_Comm_rank(MPI_COMM_WORLD,&RANK);
     MPI_Comm_size(MPI_COMM_WORLD,&SIZE);
-    string filename = argv[argc-1];
-    if(RANK==0) cout << filename << endl;
-    PageRank::test(filename);
+    string infilename = argv[argc-2];
+    string outfilename = argv[argc-1];
+    if(RANK==0) cout << infilename << endl;
+    PageRank::test(infilename, outfilename);
     MPI_Finalize();
     return 0;
 }
